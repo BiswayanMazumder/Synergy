@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pingstar/Auth%20Pages/loginpage.dart';
 import 'package:pingstar/Utils/colors.dart';
 
 class WelcomePage extends StatefulWidget {
@@ -61,18 +62,23 @@ class _WelcomePageState extends State<WelcomePage> {
           const SizedBox(
             height: 60,
           ),
-          Container(
-            width: MediaQuery.sizeOf(context).width/1.1,
-            height: 45,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(50),
-              color: WhatsAppColors.primaryGreen,
-            ),
-            child: Center(
-              child: Text('Agree and continue',style: GoogleFonts.poppins(
-                color: Colors.black,
-                fontWeight: FontWeight.w500
-              ),),
+          InkWell(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage(),));
+            },
+            child: Container(
+              width: MediaQuery.sizeOf(context).width/1.1,
+              height: 45,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(50),
+                color: WhatsAppColors.primaryGreen,
+              ),
+              child: Center(
+                child: Text('Agree and continue',style: GoogleFonts.poppins(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500
+                ),),
+              ),
             ),
           ),
           const SizedBox(
