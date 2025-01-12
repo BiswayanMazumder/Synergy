@@ -58,6 +58,26 @@ class _WelcomePageState extends State<WelcomePage> {
                 fontWeight: FontWeight.w400),
             textAlign: TextAlign.center,
           ),
+          const SizedBox(
+            height: 60,
+          ),
+          Container(
+            width: MediaQuery.sizeOf(context).width/1.1,
+            height: 45,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(50),
+              color: WhatsAppColors.primaryGreen,
+            ),
+            child: Center(
+              child: Text('Agree and continue',style: GoogleFonts.poppins(
+                color: Colors.black,
+                fontWeight: FontWeight.w500
+              ),),
+            ),
+          ),
+          const SizedBox(
+            height: 60,
+          ),
         ],
       ),
     );
