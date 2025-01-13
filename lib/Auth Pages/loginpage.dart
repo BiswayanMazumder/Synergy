@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pingstar/Auth%20Pages/OTPPage.dart';
 import 'package:pingstar/Utils/colors.dart';
 
 class LoginPage extends StatefulWidget {
@@ -121,6 +122,12 @@ class _LoginPageState extends State<LoginPage> {
                   setState(() {
                     error = 'Please enter a valid phone number';
                   });
+                }
+                if(_PhoneNumberController.text.isNotEmpty && _PhoneNumberController.text.length == 10 ){
+                  setState(() {
+                    error='';
+                  });
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => OTPVerificationPage(),));
                 }
               },
               child: Container(

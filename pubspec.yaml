@@ -42,6 +42,7 @@ dependencies:
   firebase_crashlytics: ^3.4.18
   google_fonts: ^4.0.4
   shared_preferences: ^2.2.3
+  flutter_otp_text_field: ^1.4.0+2
 dev_dependencies:
   flutter_test:
     sdk: flutter
