@@ -50,7 +50,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
               numberOfFields: 6,
               borderColor: WhatsAppColors.primaryGreen,
               keyboardType: TextInputType.number,
-              styles: [
+              styles: const[
                 TextStyle(
                   color: Colors.white
                 ),
@@ -72,6 +72,30 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
               ],
               //set to true to show as box or false to show as dash
               showFieldAsBox: true,
+              onSubmit: (String verificationCode){
+                showDialog(
+                    context: context,
+                    builder: (context){
+                      return AlertDialog(
+                        backgroundColor: WhatsAppColors.darkGreen,
+                        content: Row(
+                          children: [
+                            const CircularProgressIndicator(
+                              color: Colors.green,
+                            ),
+                            const SizedBox(
+                              width: 20,
+                            ),
+                            Text('Verifying OTP',style: GoogleFonts.poppins(
+                              color: Colors.white
+                            ),),
+                          ],
+                        ),
+                      );
+                    }
+                );
+              },
+              enabledBorderColor: Colors.green,
               //runs when a code is typed in
               onCodeChanged: (String code) {
                 //handle validation or checks here
