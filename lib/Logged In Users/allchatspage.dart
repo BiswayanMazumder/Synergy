@@ -37,7 +37,7 @@ class _AllChatsState extends State<AllChats> {
             ],
           )
         ],
-        title: Text('Synergy',style: GoogleFonts.actor(color: Colors.white,fontWeight: FontWeight.w600),),
+        title: Text('Connect',style: GoogleFonts.actor(color: Colors.white,fontWeight: FontWeight.w600),),
       ),
       floatingActionButton: FloatingActionButton(onPressed: (){},
       backgroundColor: WhatsAppColors.primaryGreen,
