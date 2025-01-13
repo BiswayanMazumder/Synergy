@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pingstar/Logged%20In%20Users/allchatspage.dart';
+import 'package:pingstar/Onboarding%20Pages/userdetailspage.dart';
 import 'package:pingstar/Utils/colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 class OTPVerificationPage extends StatefulWidget {
   const OTPVerificationPage({super.key});
 
@@ -10,6 +14,23 @@ class OTPVerificationPage extends StatefulWidget {
 }
 
 class _OTPVerificationPageState extends State<OTPVerificationPage> {
+  bool isuserregistered=false;
+  final FirebaseAuth _auth=FirebaseAuth.instance;
+  final FirebaseFirestore _firestore=FirebaseFirestore.instance;
+  Future<void> getcurrentuserdetails()async{
+    final docsnap=await _firestore.collection('User Details').doc('abcds').get();
+    if(docsnap.exists){
+      setState(() {
+        isuserregistered=true;
+      });
+    }
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    // getcurrentuserdetails();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,6 +115,15 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
                       );
                     }
                 );
+                // Navigator.push(context, MaterialPageRoute(builder: (context) =>isuserregistered?const AllChats():UserDetails() ,));
+
+                Future.delayed(const Duration(seconds: 5), () async{
+                  // Close the dialog
+                  Navigator.of(context, rootNavigator: true).pop();
+                  await getcurrentuserdetails();
+                  // Navigate to the new page (replace 'NewPage()' with your desired page)
+                  Navigator.push(context, MaterialPageRoute(builder: (context) =>isuserregistered? AllChats():const UserDetails() ,));
+                });
               },
               enabledBorderColor: Colors.green,
               //runs when a code is typed in
