@@ -1,3 +1,4 @@
+import 'package:blur/blur.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -92,6 +93,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                                 color: Colors.grey.shade500.withOpacity(0.5),
                                 borderRadius: const BorderRadius.all(
                                     Radius.circular(10))),
+
                           ),
                         ),
                         Positioned(

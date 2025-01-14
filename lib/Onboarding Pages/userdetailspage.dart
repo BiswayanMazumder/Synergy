@@ -1,4 +1,6 @@
 import 'dart:io'; // For File type
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:contacts_service/contacts_service.dart';
@@ -9,7 +11,8 @@ import 'package:pingstar/Logged%20In%20Users/allchatspage.dart';
 import 'package:pingstar/Utils/colors.dart';
 
 class UserDetails extends StatefulWidget {
-  const UserDetails({super.key});
+  final String phonenumber;
+  const UserDetails({super.key,required this.phonenumber});
 
   @override
   State<UserDetails> createState() => _UserDetailsState();
@@ -19,7 +22,17 @@ class _UserDetailsState extends State<UserDetails> {
   final TextEditingController _NameController = TextEditingController();
   List<Contact> _contacts = [];
   File? _imageFile; // Store the selected image file
-
+  final FirebaseFirestore _firestore=FirebaseFirestore.instance;
+  final FirebaseAuth _auth=FirebaseAuth.instance;
+  Future<void>updateusername()async{
+    await _firestore.collection('User Details(User ID Basis)').doc(_auth.currentUser!.uid).update(
+        {
+          'Username':_NameController.text,
+        });
+    await _firestore.collection('User Details(Contact Number Basis)').doc(widget.phonenumber).update({
+          'Username':_NameController.text,
+    });
+  }
   // Function to request permission to access contacts and get contacts
   Future<void> getcontacts() async {
     PermissionStatus permissionStatus = await Permission.contacts.request();
@@ -163,8 +176,9 @@ class _UserDetailsState extends State<UserDetails> {
             height: 30,
           ),
           InkWell(
-            onTap: () {
+            onTap: ()async{
               if(_NameController.text.isNotEmpty){
+                await updateusername();
                 Navigator.push(context, MaterialPageRoute(builder: (context) => AllChats(),));
               }
               if (_NameController.text.isEmpty) {

@@ -10,6 +10,9 @@ class AllChats extends StatefulWidget {
 }
 
 class _AllChatsState extends State<AllChats> {
+  bool inallchatpage=true;
+  bool inupdatepage=false;
+  bool incallpage=false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,6 +71,28 @@ class _AllChatsState extends State<AllChats> {
                         color: Colors.grey,fontWeight: FontWeight.w500,fontSize: 15
                       ),),
                     ),
+                  ],
+                ),
+              ),
+              const SizedBox(
+                height: 15,
+              ),
+              Container(
+                width: MediaQuery.sizeOf(context).width,
+                height: 50,
+                // color: Colors.red,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text('Chats',style: GoogleFonts.poppins(
+                      color:inallchatpage?Colors.green: Colors.white
+                    ),),
+                    Text('Updates',style: GoogleFonts.poppins(
+                        color:inupdatepage?Colors.green: Colors.white
+                    ),),
+                    Text('Calls',style: GoogleFonts.poppins(
+                        color:incallpage?Colors.green: Colors.white
+                    ),),
                   ],
                 ),
               )
