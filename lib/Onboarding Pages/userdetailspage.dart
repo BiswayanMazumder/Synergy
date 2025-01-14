@@ -29,9 +29,11 @@ class _UserDetailsState extends State<UserDetails> {
     await _firestore.collection('User Details(User ID Basis)').doc(_auth.currentUser!.uid).update(
         {
           'Username':_NameController.text,
+          'Status':'Hey there! Am using Connect'
         });
     await _firestore.collection('User Details(Contact Number Basis)').doc(widget.phonenumber).update({
           'Username':_NameController.text,
+          'Status':'Hey there! Am using Connect'
     });
   }
   // Function to request permission to access contacts and get contacts
