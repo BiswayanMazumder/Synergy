@@ -1,90 +1,63 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pingstar/Logged%20In%20Users/allchatspage.dart';
 import 'package:pingstar/Logged%20In%20Users/callpage.dart';
 import 'package:pingstar/Logged%20In%20Users/updatespage.dart';
 import 'package:pingstar/Utils/colors.dart';
 
-void main() {
-  runApp(MyApp());
-}
+class LoggedInUserTopBar extends StatefulWidget {
+  const LoggedInUserTopBar({super.key});
 
-class MyApp extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
-    );
-  }
+  State<LoggedInUserTopBar> createState() => _LoggedInUserTopBarState();
 }
 
-class HomeScreen extends StatefulWidget {
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
+class _LoggedInUserTopBarState extends State<LoggedInUserTopBar> {
+  int currentIndex = 0;
 
-class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
-
-  final List<Widget> _screens = [
-    AllChats(),
-    UpdatesPage(),
-    CallPage(),
+  final List<Widget> pages = [
+    const AllChats(),
+    const UpdatesPage(),
+    const CallPage(),
   ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _currentIndex,
-        onItemTapped: _onItemTapped,
+      backgroundColor: WhatsAppColors.darkGreen,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: WhatsAppColors.primaryGreen,
+        child: const Icon(Icons.add_comment, color: Colors.black),
+      ),
+      body: pages[currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: (index) {
+          setState(() {
+            currentIndex = index;
+          });
+        },
+        backgroundColor: WhatsAppColors.darkGreen,
+        selectedItemColor: WhatsAppColors.primaryGreen,
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chats',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.update),
+            label: 'Updates',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.call),
+            label: 'Calls',
+          ),
+        ],
       ),
     );
   }
 }
-
-class BottomNavBar extends StatelessWidget {
-  final int currentIndex;
-  final Function(int) onItemTapped;
-
-  const BottomNavBar({
-    Key? key,
-    required this.currentIndex,
-    required this.onItemTapped,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      backgroundColor: WhatsAppColors.darkGreen, // Bottom nav bar background
-      currentIndex: currentIndex,
-      onTap: onItemTapped,
-      selectedItemColor: Colors.green, // Active icon color
-      unselectedItemColor: Colors.white, // Inactive icon color
-      selectedLabelStyle: TextStyle(color: Colors.white), // Active text color
-      unselectedLabelStyle: TextStyle(color: Colors.white), // Inactive text color
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.chat),
-          label: 'Chats',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.photo),
-          label: 'Updates',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.call),
-          label: 'Calls',
-        ),
-      ],
-    );
-  }
-}
-

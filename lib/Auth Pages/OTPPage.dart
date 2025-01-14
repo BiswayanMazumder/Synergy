@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pingstar/Logged%20In%20Users/allchatspage.dart';
+import 'package:pingstar/Navigation%20Bar/bottomnavbar.dart';
 import 'package:pingstar/Onboarding%20Pages/userdetailspage.dart';
 import 'package:pingstar/Utils/colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -30,7 +31,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       username=docsnap.data()?['Username'];
     }
     if(username!=null || username!=''){
-      Navigator.push(context, MaterialPageRoute(builder: (context) => AllChats(),));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => LoggedInUserTopBar(),));
     }
   }
   Future<void> _verifyOTP() async {
@@ -45,7 +46,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
       final prefs=await SharedPreferences.getInstance();
       final docsnap=await _firestore.collection('User Details(User ID Basis)').doc(_auth.currentUser!.uid).get();
       if(docsnap.exists){
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AllChats(),));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoggedInUserTopBar(),));
       }
       if(!docsnap.exists){
         await _firestore.collection('User Details(User ID Basis)').doc(_auth.currentUser!.uid).set(

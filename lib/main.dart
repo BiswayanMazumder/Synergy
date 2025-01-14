@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:pingstar/Logged%20In%20Users/allchatspage.dart';
+import 'package:pingstar/Navigation%20Bar/bottomnavbar.dart';
 import 'package:pingstar/Welcome%20Page/welcome_page.dart';
 
 import 'firebase_options.dart';
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
     return  MaterialApp(
       title: 'Connect',
       debugShowCheckedModeBanner: false,
-      home: _auth.currentUser!.uid!=null?const AllChats():const WelcomePage(),
+      home: _auth.currentUser!.uid!=null?const LoggedInUserTopBar():const WelcomePage(),
     );
   }
 }

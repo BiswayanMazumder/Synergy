@@ -8,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart'; // Import the image_picker package
 import 'package:pingstar/Logged%20In%20Users/allchatspage.dart';
+import 'package:pingstar/Navigation%20Bar/bottomnavbar.dart';
 import 'package:pingstar/Utils/colors.dart';
 
 class UserDetails extends StatefulWidget {
@@ -179,7 +180,7 @@ class _UserDetailsState extends State<UserDetails> {
             onTap: ()async{
               if(_NameController.text.isNotEmpty){
                 await updateusername();
-                Navigator.push(context, MaterialPageRoute(builder: (context) => AllChats(),));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => LoggedInUserTopBar(),));
               }
               if (_NameController.text.isEmpty) {
                 setState(() {
