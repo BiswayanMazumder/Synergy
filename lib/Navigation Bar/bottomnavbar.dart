@@ -26,11 +26,6 @@ class _LoggedInUserTopBarState extends State<LoggedInUserTopBar> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: WhatsAppColors.darkGreen,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: WhatsAppColors.primaryGreen,
-        child: const Icon(Icons.add_comment, color: Colors.black),
-      ),
       body: pages[currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
