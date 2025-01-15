@@ -95,7 +95,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
           contactnumber = numbers;
         });
         if (kDebugMode) {
-          // print('name: $names contact number $contactnumber');
+          print('name: $names contact number $contactnumber');
         }
       }
     } catch (e) {

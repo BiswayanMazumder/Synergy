@@ -104,45 +104,48 @@ class _ChattingPageState extends State<ChattingPage> {
                   final isCurrentUser =
                       message['senderID'] == _auth.currentUser!.uid;
 
-                  return Column(
-                    crossAxisAlignment: isCurrentUser
-                        ? CrossAxisAlignment.end
-                        : CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: isCurrentUser
-                            ? MainAxisAlignment.end
-                            : MainAxisAlignment.start,
-                        children: [
-                          if (!isCurrentUser)
-                            const CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                  'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
-                            ),
-                          const SizedBox(width: 10),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: isCurrentUser ? Colors.green : Colors.blue,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Text(
-                                message['message'],
-                                style: const TextStyle(color: Colors.white),
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 15),
+                    child: Column(
+                      crossAxisAlignment: isCurrentUser
+                          ? CrossAxisAlignment.end
+                          : CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: isCurrentUser
+                              ? MainAxisAlignment.end
+                              : MainAxisAlignment.start,
+                          children: [
+                            if (!isCurrentUser)
+                              const CircleAvatar(
+                                backgroundImage: NetworkImage(
+                                    'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                              ),
+                            const SizedBox(width: 10),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: isCurrentUser ? Colors.green : Colors.blue,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(15.0),
+                                child: Text(
+                                  message['message'],
+                                  style: const TextStyle(color: Colors.white,fontWeight: FontWeight.w500),
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          if (isCurrentUser)
-                            const CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                  'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
-                            ),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(width: 10),
+                            if (isCurrentUser)
+                              const CircleAvatar(
+                                backgroundImage: NetworkImage(
+                                    'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
                   );
                 },
               );
