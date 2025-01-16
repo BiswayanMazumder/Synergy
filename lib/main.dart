@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
     return  MaterialApp(
       title: 'Connect',
       debugShowCheckedModeBanner: false,
-      home: _auth.currentUser!.uid!=null?const LoggedInUserTopBar():const WelcomePage(),
+      home: _auth.currentUser!=null?const LoggedInUserTopBar():const WelcomePage(),
     );
   }
 }

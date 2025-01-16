@@ -88,7 +88,6 @@ class _AllContactsState extends State<AllContacts> {
     return Scaffold(
       backgroundColor: WhatsAppColors.darkGreen,
       appBar: AppBar(
-
         actions: [
           Row(
             children: [
@@ -98,30 +97,31 @@ class _AllContactsState extends State<AllContacts> {
               ),
               const SizedBox(width: 20),
               const InkWell(
-
-                child: const Icon(CupertinoIcons.ellipsis_vertical, color: Colors.white),
+                child: Icon(CupertinoIcons.ellipsis_vertical, color: Colors.white),
               ),
               const SizedBox(width: 10),
             ],
           )
         ],
         backgroundColor: WhatsAppColors.darkGreen,
-        title:(selectedCount > 0)?Text(selectedCount.toString(), style: GoogleFonts.poppins(color: Colors.white)): Text('Select Contacts', style: GoogleFonts.poppins(color: Colors.white)),
+        title: (selectedCount > 0)
+            ? Text(selectedCount.toString(), style: GoogleFonts.poppins(color: Colors.white))
+            : Text('Select Contacts', style: GoogleFonts.poppins(color: Colors.white)),
         leading: InkWell(
           onTap: () {
-            if(selectedCount>0){
+            if (selectedCount > 0) {
               setState(() {
-                selectedCount=0;
+                selectedCount = 0;
               });
             }
-            if(selectedCount==0){
+            if (selectedCount == 0) {
               Navigator.pop(context);
             }
           },
           child: const Icon(Icons.arrow_back, color: Colors.white),
         ),
       ),
-      body: contactname.isEmpty && ContactNumber.isEmpty
+      body: contactname.isEmpty || ContactNumber.isEmpty || UserIDS.isEmpty || Statuses.isEmpty
           ? Padding(
         padding: const EdgeInsets.only(top: 20.0),
         child: Center(
@@ -143,15 +143,25 @@ class _AllContactsState extends State<AllContacts> {
           },
           child: Column(
             children: [
-              // Display selected items count
               Expanded(
                 child: ListView.builder(
                   itemCount: contactname.length,
                   itemBuilder: (context, index) {
+                    if (index >= UserIDS.length || index >= Statuses.length) {
+                      return const SizedBox.shrink();
+                    }
                     return ListTile(
                       title: InkWell(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => ChattingPage(UserID: UserIDS[index], Name: contactname[index]),));
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChattingPage(
+                                UserID: UserIDS[index],
+                                Name: contactname[index],
+                              ),
+                            ),
+                          );
                         },
                         onLongPress: () {
                           setState(() {
@@ -173,16 +183,20 @@ class _AllContactsState extends State<AllContacts> {
                             child: Row(
                               children: [
                                 const CircleAvatar(
-                                  backgroundImage: NetworkImage('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                                  backgroundImage: NetworkImage(
+                                      'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
                                 ),
                                 const SizedBox(width: 20),
                                 Column(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(contactname[index], style: GoogleFonts.poppins(color: Colors.white)),
+                                    Text(contactname[index],
+                                        style: GoogleFonts.poppins(color: Colors.white)),
                                     const SizedBox(height: 5),
-                                    Text(Statuses[index], style: GoogleFonts.poppins(color: Colors.grey, fontSize: 13)),
+                                    Text(Statuses[index],
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.grey, fontSize: 13)),
                                   ],
                                 ),
                               ],
