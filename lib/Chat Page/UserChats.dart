@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pingstar/Logged%20In%20Users/allchatspage.dart';
 import 'package:pingstar/Utils/colors.dart';
+import 'package:intl/intl.dart';
 
 class ChattingPage extends StatefulWidget {
   final String UserID;
@@ -26,16 +28,22 @@ class _ChattingPageState extends State<ChattingPage> {
       final currentUser = _auth.currentUser!;
       final timestamp = FieldValue.serverTimestamp();
 
-      await _firestore.collection('chats').add({
+      // Add message with 'pending' status
+      final docRef = await _firestore.collection('chats').add({
         'senderID': currentUser.uid,
         'receiverID': widget.UserID,
         'message': message,
         'timestamp': timestamp,
+        'status': 'pending',
       });
+
+      // Update status to 'sent' after adding to Firestore
+      await docRef.update({'status': 'sent'});
 
       _messageController.clear();
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -101,15 +109,21 @@ class _ChattingPageState extends State<ChattingPage> {
                 reverse: true,
                 itemBuilder: (context, index) {
                   final message = messages[index];
-                  final isCurrentUser =
-                      message['senderID'] == _auth.currentUser!.uid;
+                  final isCurrentUser = message['senderID'] == _auth.currentUser!.uid;
+
+                  // Format timestamp
+                  final Timestamp? timestamp = message['timestamp'];
+                  final DateTime dateTime = timestamp != null ? timestamp.toDate() : DateTime.now();
+                  final formattedTime = DateFormat('hh:mm a').format(dateTime);
+
+
+                  final status = message['status']; // Get the message status
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 15),
                     child: Column(
-                      crossAxisAlignment: isCurrentUser
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
+                      crossAxisAlignment:
+                      isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 10),
                         Row(
@@ -123,18 +137,51 @@ class _ChattingPageState extends State<ChattingPage> {
                                     'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
                               ),
                             const SizedBox(width: 10),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: isCurrentUser ? Colors.green : Colors.blue,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(15.0),
-                                child: Text(
-                                  message['message'],
-                                  style: const TextStyle(color: Colors.white,fontWeight: FontWeight.w500),
+                            Column(
+                              crossAxisAlignment: isCurrentUser
+                                  ? CrossAxisAlignment.end
+                                  : CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: isCurrentUser ? Colors.green : Colors.blue,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(15.0),
+                                    child: Text(
+                                      message['message'],
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                const SizedBox(height: 5),
+                                Row(
+                                  children: [
+                                    Text(
+                                      formattedTime,
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    // Show status icon
+                                    if (isCurrentUser)
+                                      Icon(
+                                        status == 'pending'
+                                            ? CupertinoIcons.clock:
+                                        status=='delivered'?CupertinoIcons.checkmark_alt_circle_fill
+                                            : Icons.check,
+                                        color:status=='seen'?Colors.blue: CupertinoColors.white,
+                                        size: 12,
+                                      ),
+                                  ],
+                                ),
+                              ],
                             ),
                             const SizedBox(width: 10),
                             if (isCurrentUser)
@@ -149,6 +196,7 @@ class _ChattingPageState extends State<ChattingPage> {
                   );
                 },
               );
+
             },
           ),
           // Message typing section
