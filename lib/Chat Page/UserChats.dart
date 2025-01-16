@@ -39,12 +39,21 @@ class _ChattingPageState extends State<ChattingPage> {
 
       // Update status to 'sent' after adding to Firestore
       await docRef.update({'status': 'sent'});
-
+      await _firestore.collection('Recent Chats').doc(_auth.currentUser!.uid).set(
+          {
+            'Other User UID':FieldValue.arrayUnion([
+              widget.UserID
+            ])
+          },SetOptions(merge: true));
+      await _firestore.collection('Recent Chats').doc(widget.UserID).set(
+          {
+            'Other User UID':FieldValue.arrayUnion([
+              _auth.currentUser!.uid
+            ])
+          },SetOptions(merge: true));
       _messageController.clear();
     }
   }
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
