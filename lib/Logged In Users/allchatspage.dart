@@ -19,9 +19,19 @@ class AllChats extends StatefulWidget {
 class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final TextEditingController _searchController = TextEditingController();
+
   List<String> contactname = []; // List to store contact names
   List<String> contactnumber = []; // List to store contact numbers
+  List<String> ContactNumber = [];
+  List<String> ContactName = [];
+  List<String> OtherUserUIDS = [];
+  List<String> lastMessages = [];
+  List<String> lastMessagesstatus = [];
+
   String usercontactnumber = '';
+  String mobileNumber = '';
+  String _searchQuery = '';
 
   // Fetch user contact number
   Future<void> getcontactnumber() async {
@@ -35,9 +45,8 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
           usercontactnumber = docsnap.data()?['Mobile Number'];
         });
       }
-      print('Number $usercontactnumber');
     } catch (e) {
-      print(e);
+      if (kDebugMode) print(e);
     }
   }
 
@@ -48,17 +57,13 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
       await _firestore
           .collection('User Details(User ID Basis)')
           .doc(_auth.currentUser!.uid)
-          .update({
-        'User Online': true,
-      });
+          .update({'User Online': true});
       await _firestore
           .collection('User Details(Contact Number Basis)')
           .doc(usercontactnumber)
-          .update({
-        'User Online': true,
-      });
+          .update({'User Online': true});
     } catch (e) {
-      print(e);
+      if (kDebugMode) print(e);
     }
   }
 
@@ -69,30 +74,23 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
       await _firestore
           .collection('User Details(User ID Basis)')
           .doc(_auth.currentUser!.uid)
-          .update({
-        'User Online': false,
-      });
+          .update({'User Online': false});
       await _firestore
           .collection('User Details(Contact Number Basis)')
           .doc(usercontactnumber)
-          .update({
-        'User Online': false,
-      });
+          .update({'User Online': false});
     } catch (e) {
-      print(e);
+      if (kDebugMode) print(e);
     }
   }
 
   // Optimized contact fetching method using flutter_contacts
   Future<void> getContacts() async {
     try {
-      // Request permission if not granted
       if (await FlutterContacts.requestPermission()) {
-        // Fetch contacts from device
         List<Contact> contacts =
         await FlutterContacts.getContacts(withProperties: true);
 
-        // Extract contact names and phone numbers
         List<String> names = [];
         List<String> numbers = [];
 
@@ -103,35 +101,22 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
               : 'No phone number';
 
           names.add(name);
-          numbers.add(normalizePhoneNumber(phoneNumber)); // Normalize the phone number
+          numbers.add(normalizePhoneNumber(phoneNumber));
         }
 
-        // Update the state once all contacts are fetched
         setState(() {
           contactname = names;
           contactnumber = numbers;
         });
-        if (kDebugMode) {
-          // print('name: $names contact number $contactnumber');
-        }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Failed to fetch contacts: $e');
-      }
+      if (kDebugMode) print('Failed to fetch contacts: $e');
     }
   }
 
-  List<String> ContactNumber = [];
-  List<String> ContactName = [];
-  List<String> OtherUserUIDS = [];
-  String mobileNumber = '';
-  List<String> lastMessages = [];
-  List<String> lastMessagesstatus = [];
-
+  // Fetch recent chats
   Future<void> getrecentchats() async {
     await getContacts();
-
     final docsnap = await _firestore
         .collection('Recent Chats')
         .doc(_auth.currentUser!.uid)
@@ -149,8 +134,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
       if (UserSnap.exists) {
         setState(() {
           mobileNumber = UserSnap.data()?['Mobile Number'] ?? '';
-          String normalizedMobileNumber = normalizePhoneNumber(mobileNumber);
-          ContactNumber.add(normalizedMobileNumber);
+          ContactNumber.add(normalizePhoneNumber(mobileNumber));
         });
       }
     }
@@ -164,7 +148,6 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
         ContactName.add(mobileNumber);
       }
 
-      // Fetch last message from chats collection
       final lastMessageSnap = await _firestore
           .collection('chats')
           .where('senderID', isEqualTo: _auth.currentUser!.uid)
@@ -175,45 +158,55 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
 
       if (lastMessageSnap.docs.isNotEmpty) {
         setState(() {
-          // You can add this last message to a list to display in the chat list
-          String lastMessage = lastMessageSnap.docs.first['message'] ?? '';
-          String lastMessagests = lastMessageSnap.docs.first['status'] ?? '';
-          // Store the last message in a list
-          lastMessages.add(lastMessage);
-          lastMessagesstatus.add(lastMessagests);
+          lastMessages.add(lastMessageSnap.docs.first['message'] ?? '');
+          lastMessagesstatus.add(lastMessageSnap.docs.first['status'] ?? '');
         });
       }
     }
   }
 
-  // Normalize phone number by removing country code and formatting consistently
+  // Normalize phone number
   String normalizePhoneNumber(String number) {
-    // Remove all non-numeric characters
     String normalized = number.replaceAll(RegExp(r'\s+|-|\(|\)|\+'), '');
-
-    // Remove country code if it's an Indian number starting with +91 or 91
     if (normalized.startsWith('91') && normalized.length > 10) {
-      normalized = normalized.substring(2); // Remove the '91' country code
+      normalized = normalized.substring(2);
     }
-
     return normalized;
+  }
+
+  // Search function
+  void _onSearchChanged() {
+    setState(() {
+      _searchQuery = _searchController.text.toLowerCase();
+    });
+  }
+
+  // Filter contacts or recent chats based on the search query
+  List<int> _getFilteredIndexes() {
+    if (_searchQuery.isEmpty) {
+      return List<int>.generate(OtherUserUIDS.length, (index) => index);
+    }
+    return List<int>.generate(OtherUserUIDS.length, (index) => index)
+        .where((index) =>
+    ContactName[index].toLowerCase().contains(_searchQuery) ||
+        ContactNumber[index].contains(_searchQuery))
+        .toList();
   }
 
   @override
   void initState() {
     super.initState();
-    // Fetch contacts and update online status when the app starts
+    _searchController.addListener(_onSearchChanged);
     getContacts();
     getrecentchats();
     updateactivity();
-
-    // Add this observer to listen for lifecycle events
     WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
-    // Remove the observer when the widget is disposed
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -221,14 +214,10 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-
-    // If the app goes to the background or is closed, set user status to offline
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       setUserOffline();
     }
-
-    // If the app comes to the foreground, set user status to online
     if (state == AppLifecycleState.resumed) {
       updateactivity();
     }
@@ -236,6 +225,8 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final filteredIndexes = _getFilteredIndexes();
+
     return Scaffold(
       backgroundColor: WhatsAppColors.darkGreen,
       appBar: AppBar(
@@ -265,7 +256,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
               color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
-      floatingActionButton: contactname.length > 1 && contactnumber.length > 1
+      floatingActionButton: contactname.isNotEmpty && contactnumber.isNotEmpty
           ? FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -282,130 +273,127 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
           : Container(),
       body: Padding(
         padding: const EdgeInsets.only(left: 20, right: 20),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              // Search bar
-              Container(
-                width: MediaQuery.sizeOf(context).width,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade800,
-                  borderRadius: const BorderRadius.all(Radius.circular(50)),
-                ),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 20),
-                    Center(
-                      child: Text(
-                        'Ask AI or Search',
-                        style: GoogleFonts.poppins(
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w500,
-                          fontSize: 15,
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                const SizedBox(height: 20),
+                Container(
+                  width: MediaQuery.sizeOf(context).width,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade800,
+                    borderRadius: const BorderRadius.all(Radius.circular(50)),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          style: GoogleFonts.poppins(
+                              color: Colors.white, fontWeight: FontWeight.w500),
+                          decoration: InputDecoration(
+                            hintText: 'Search by name or number',
+                            hintStyle: GoogleFonts.poppins(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 15,
+                            ),
+                            border: InputBorder.none,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 20),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              // Directly wrap ListView.builder instead of using Expanded
-              OtherUserUIDS.length > 0
-                  ? ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: OtherUserUIDS.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      children: [
-                        InkWell(
+                const SizedBox(height: 20),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: filteredIndexes.length,
+                    itemBuilder: (context, index) {
+                      final int actualIndex = filteredIndexes[index];
+                      return Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: InkWell(
                           onTap: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ChattingPage(
-                                  UserID: OtherUserUIDS[index],
-                                  Name: '+91 ${ContactName[index]}',
+                                  UserID: OtherUserUIDS[actualIndex],
+                                  Name: '+91 ${ContactName[actualIndex]}',
                                 ),
                               ),
                             );
                           },
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                const CircleAvatar(
-                                  backgroundImage: NetworkImage(
-                                      'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
-                                ),
-                                const SizedBox(width: 10),
-                                Column(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.start,
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '+91 ${ContactName[index]}',
-                                      style: GoogleFonts.poppins(
+                          child: Row(
+                            children: [
+                              const CircleAvatar(
+                                backgroundImage: NetworkImage(
+                                    'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                              ),
+                              const SizedBox(width: 10),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '+91 ${ContactName[actualIndex]}',
+                                    style: GoogleFonts.poppins(
+                                        color: CupertinoColors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16),
+                                  ),
+                                  if (lastMessages.isNotEmpty)
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          lastMessagesstatus[actualIndex] == 'sent'
+                                              ? Icons.check
+                                              : lastMessagesstatus[actualIndex] ==
+                                              'delivered'
+                                              ? CupertinoIcons
+                                              .checkmark_alt_circle_fill
+                                              : CupertinoIcons.clock,
                                           color: CupertinoColors.white,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 16),
+                                          size: 15,
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          lastMessages[actualIndex],
+                                          style: GoogleFonts.poppins(
+                                              color: Colors.grey,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 15),
+                                        ),
+                                      ],
                                     ),
-                                    if (lastMessages.isNotEmpty)
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            lastMessagesstatus[index] ==
-                                                'sent'
-                                                ? Icons.check
-                                                : lastMessagesstatus[
-                                            index] ==
-                                                'delivered'
-                                                ? CupertinoIcons
-                                                .checkmark_alt_circle_fill
-                                                : CupertinoIcons
-                                                .clock,
-                                            color: CupertinoColors.white,
-                                            size: 15,
-                                          ),
-                                          const SizedBox(
-                                            width: 5,
-                                          ),
-                                          Text(
-                                            lastMessages[index],
-                                            style: GoogleFonts.poppins(
-                                                color: Colors.grey,
-                                                fontWeight:
-                                                FontWeight.w500,
-                                                fontSize: 15),
-                                          ),
-                                        ],
-                                      ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                        // Display the last message under the user's name
-                      ],
-                    ),
-                  );
-                },
-              )
-                  : Container(),
-            ],
-          ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+             Positioned(
+                bottom: 90,
+                right: 0,
+                child: Container(
+                  height: 50,
+                  width: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    borderRadius:const BorderRadius.all(Radius.circular(15))
+                  ),
+                  child:const Image(image: NetworkImage('https://cfyxewbfkabqzrtdyfxc.supabase.co/storage/v1/object/sign/Assets/800px-Meta_AI_logo-removebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJBc3NldHMvODAwcHgtTWV0YV9BSV9sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzM3MjIxNjk2LCJleHAiOjE3Njg3NTc2OTZ9.SbXqTuyHtZkHazqLooZGB-09GsXQIpSxnGlDWfviX1s&t=2025-01-18T17%3A34%3A57.203Z'),
+                  height: 40,width: 40,),
+                ),)
+          ],
         ),
       ),
     );

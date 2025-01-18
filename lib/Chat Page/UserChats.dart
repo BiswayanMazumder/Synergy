@@ -18,11 +18,10 @@ class ChattingPage extends StatefulWidget {
 }
 
 class _ChattingPageState extends State<ChattingPage> {
-  bool isonline=false;
+  bool isonline = false;
   Future<void> getuseronlinestatus() async {
-    final docRef = _firestore.collection('User Details(User ID Basis)').doc(widget.UserID);
-
-    // Listen to real-time updates
+    final docRef =
+        _firestore.collection('User Details(User ID Basis)').doc(widget.UserID);
     docRef.snapshots().listen((docsnap) {
       if (docsnap.exists) {
         setState(() {
@@ -31,8 +30,6 @@ class _ChattingPageState extends State<ChattingPage> {
       }
     });
   }
-
-
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _messageController = TextEditingController();
@@ -54,26 +51,25 @@ class _ChattingPageState extends State<ChattingPage> {
 
       // Update status to 'sent' after adding to Firestore
       await docRef.update({'status': 'sent'});
-      await _firestore.collection('Recent Chats').doc(_auth.currentUser!.uid).set(
-          {
-            'Other User UID':FieldValue.arrayUnion([
-              widget.UserID
-            ])
-          },SetOptions(merge: true));
-      await _firestore.collection('Recent Chats').doc(widget.UserID).set(
-          {
-            'Other User UID':FieldValue.arrayUnion([
-              _auth.currentUser!.uid
-            ])
-          },SetOptions(merge: true));
+      await _firestore
+          .collection('Recent Chats')
+          .doc(_auth.currentUser!.uid)
+          .set({
+        'Other User UID': FieldValue.arrayUnion([widget.UserID])
+      }, SetOptions(merge: true));
+      await _firestore.collection('Recent Chats').doc(widget.UserID).set({
+        'Other User UID': FieldValue.arrayUnion([_auth.currentUser!.uid])
+      }, SetOptions(merge: true));
       _messageController.clear();
     }
   }
+
   @override
   void initState() {
     // TODO: implement initState
     getuseronlinestatus();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,7 +91,7 @@ class _ChattingPageState extends State<ChattingPage> {
                   style: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
                 ),
                 Text(
-                  isonline?'online':'',
+                  isonline ? 'online' : '',
                   style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12),
                 ),
               ],
@@ -148,21 +144,23 @@ class _ChattingPageState extends State<ChattingPage> {
                 reverse: true,
                 itemBuilder: (context, index) {
                   final message = messages[index];
-                  final isCurrentUser = message['senderID'] == _auth.currentUser!.uid;
+                  final isCurrentUser =
+                      message['senderID'] == _auth.currentUser!.uid;
 
                   // Format timestamp
                   final Timestamp? timestamp = message['timestamp'];
-                  final DateTime dateTime = timestamp != null ? timestamp.toDate() : DateTime.now();
+                  final DateTime dateTime =
+                      timestamp != null ? timestamp.toDate() : DateTime.now();
                   final formattedTime = DateFormat('hh:mm a').format(dateTime);
-
 
                   final status = message['status']; // Get the message status
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 15),
                     child: Column(
-                      crossAxisAlignment:
-                      isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                      crossAxisAlignment: isCurrentUser
+                          ? CrossAxisAlignment.end
+                          : CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 10),
                         Row(
@@ -183,7 +181,9 @@ class _ChattingPageState extends State<ChattingPage> {
                               children: [
                                 Container(
                                   decoration: BoxDecoration(
-                                    color: isCurrentUser ? Colors.green : Colors.blue,
+                                    color: isCurrentUser
+                                        ? Colors.green
+                                        : Colors.blue,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Padding(
@@ -212,10 +212,14 @@ class _ChattingPageState extends State<ChattingPage> {
                                     if (isCurrentUser)
                                       Icon(
                                         status == 'pending'
-                                            ? CupertinoIcons.clock:
-                                        status=='delivered'?CupertinoIcons.checkmark_alt_circle_fill
-                                            : Icons.check,
-                                        color:status=='seen'?Colors.blue: CupertinoColors.white,
+                                            ? CupertinoIcons.clock
+                                            : status == 'delivered'
+                                                ? CupertinoIcons
+                                                    .checkmark_alt_circle_fill
+                                                : Icons.check,
+                                        color: status == 'seen'
+                                            ? Colors.blue
+                                            : CupertinoColors.white,
                                         size: 12,
                                       ),
                                   ],
@@ -235,7 +239,6 @@ class _ChattingPageState extends State<ChattingPage> {
                   );
                 },
               );
-
             },
           ),
           // Message typing section
