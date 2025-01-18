@@ -18,6 +18,21 @@ class ChattingPage extends StatefulWidget {
 }
 
 class _ChattingPageState extends State<ChattingPage> {
+  bool isonline=false;
+  Future<void> getuseronlinestatus() async {
+    final docRef = _firestore.collection('User Details(User ID Basis)').doc(widget.UserID);
+
+    // Listen to real-time updates
+    docRef.snapshots().listen((docsnap) {
+      if (docsnap.exists) {
+        setState(() {
+          isonline = docsnap.data()?['User Online'];
+        });
+      }
+    });
+  }
+
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _messageController = TextEditingController();
@@ -55,6 +70,11 @@ class _ChattingPageState extends State<ChattingPage> {
     }
   }
   @override
+  void initState() {
+    // TODO: implement initState
+    getuseronlinestatus();
+  }
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: WhatsAppColors.darkGreen,
@@ -66,9 +86,19 @@ class _ChattingPageState extends State<ChattingPage> {
                   'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
             ),
             const SizedBox(width: 20),
-            Text(
-              widget.Name,
-              style: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.Name,
+                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
+                ),
+                Text(
+                  isonline?'online':'',
+                  style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12),
+                ),
+              ],
             ),
           ],
         ),

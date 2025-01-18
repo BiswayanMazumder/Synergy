@@ -90,7 +90,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
       if (await FlutterContacts.requestPermission()) {
         // Fetch contacts from device
         List<Contact> contacts =
-            await FlutterContacts.getContacts(withProperties: true);
+        await FlutterContacts.getContacts(withProperties: true);
 
         // Extract contact names and phone numbers
         List<String> names = [];
@@ -103,7 +103,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
               : 'No phone number';
 
           names.add(name);
-          numbers.add(phoneNumber);
+          numbers.add(normalizePhoneNumber(phoneNumber)); // Normalize the phone number
         }
 
         // Update the state once all contacts are fetched
@@ -138,7 +138,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
         .get();
     if (docsnap.exists) {
       OtherUserUIDS =
-          List<String>.from(docsnap.data()?['Other User UID'] ?? []);
+      List<String>.from(docsnap.data()?['Other User UID'] ?? []);
     }
 
     for (int i = 0; i < OtherUserUIDS.length; i++) {
@@ -158,7 +158,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
     for (int i = 0; i < ContactNumber.length; i++) {
       String normalizedContactNumber = normalizePhoneNumber(contactnumber[i]);
 
-      if (ContactNumber[i] == contactnumber[i]) {
+      if (ContactNumber[i] == normalizedContactNumber) {
         ContactName.add(contactname[i]);
       } else {
         ContactName.add(mobileNumber);
@@ -186,9 +186,17 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
     }
   }
 
-// Normalize phone number by removing country code and formatting consistently
+  // Normalize phone number by removing country code and formatting consistently
   String normalizePhoneNumber(String number) {
-    return number.replaceAll(RegExp(r'\s+|-|\(|\)|\+'), '');
+    // Remove all non-numeric characters
+    String normalized = number.replaceAll(RegExp(r'\s+|-|\(|\)|\+'), '');
+
+    // Remove country code if it's an Indian number starting with +91 or 91
+    if (normalized.startsWith('91') && normalized.length > 10) {
+      normalized = normalized.substring(2); // Remove the '91' country code
+    }
+
+    return normalized;
   }
 
   @override
@@ -239,7 +247,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
               InkWell(
                 onTap: () {},
                 child:
-                    const Icon(Icons.camera_alt_outlined, color: Colors.white),
+                const Icon(Icons.camera_alt_outlined, color: Colors.white),
               ),
               const SizedBox(width: 10),
               InkWell(
@@ -259,18 +267,18 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
       ),
       floatingActionButton: contactname.length > 1 && contactnumber.length > 1
           ? FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AllContacts(
-                        contactname: contactname, contactnumber: contactnumber),
-                  ),
-                );
-              },
-              backgroundColor: WhatsAppColors.primaryGreen,
-              child: const Icon(Icons.add_comment, color: Colors.black),
-            )
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AllContacts(
+                  contactname: contactname, contactnumber: contactnumber),
+            ),
+          );
+        },
+        backgroundColor: WhatsAppColors.primaryGreen,
+        child: const Icon(Icons.add_comment, color: Colors.black),
+      )
           : Container(),
       body: Padding(
         padding: const EdgeInsets.only(left: 20, right: 20),
@@ -308,93 +316,93 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
               // Directly wrap ListView.builder instead of using Expanded
               OtherUserUIDS.length > 0
                   ? ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: OtherUserUIDS.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Column(
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ChattingPage(
-                                        UserID: OtherUserUIDS[index],
-                                        Name: '+91 ${ContactName[index]}',
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const CircleAvatar(
-                                        backgroundImage: NetworkImage(
-                                            'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '+91 ${ContactName[index]}',
-                                            style: GoogleFonts.poppins(
-                                                color: CupertinoColors.white,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 16),
-                                          ),
-                                          if (lastMessages.isNotEmpty)
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  lastMessagesstatus[index] ==
-                                                          'sent'
-                                                      ? Icons.check
-                                                      : lastMessagesstatus[
-                                                                  index] ==
-                                                              'delivered'
-                                                          ? CupertinoIcons
-                                                              .checkmark_alt_circle_fill
-                                                          : CupertinoIcons
-                                                              .clock,
-                                                  color: CupertinoColors.white,
-                                                  size: 15,
-                                                ),
-                                                const SizedBox(
-                                                  width: 5,
-                                                ),
-                                                Text(
-                                                  lastMessages[index],
-                                                  style: GoogleFonts.poppins(
-                                                      color: Colors.grey,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      fontSize: 15),
-                                                ),
-                                              ],
-                                            ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: OtherUserUIDS.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChattingPage(
+                                  UserID: OtherUserUIDS[index],
+                                  Name: '+91 ${ContactName[index]}',
                                 ),
                               ),
-                              // Display the last message under the user's name
-                            ],
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+                              children: [
+                                const CircleAvatar(
+                                  backgroundImage: NetworkImage(
+                                      'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                                ),
+                                const SizedBox(width: 10),
+                                Column(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.start,
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '+91 ${ContactName[index]}',
+                                      style: GoogleFonts.poppins(
+                                          color: CupertinoColors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16),
+                                    ),
+                                    if (lastMessages.isNotEmpty)
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            lastMessagesstatus[index] ==
+                                                'sent'
+                                                ? Icons.check
+                                                : lastMessagesstatus[
+                                            index] ==
+                                                'delivered'
+                                                ? CupertinoIcons
+                                                .checkmark_alt_circle_fill
+                                                : CupertinoIcons
+                                                .clock,
+                                            color: CupertinoColors.white,
+                                            size: 15,
+                                          ),
+                                          const SizedBox(
+                                            width: 5,
+                                          ),
+                                          Text(
+                                            lastMessages[index],
+                                            style: GoogleFonts.poppins(
+                                                color: Colors.grey,
+                                                fontWeight:
+                                                FontWeight.w500,
+                                                fontSize: 15),
+                                          ),
+                                        ],
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        );
-                      },
-                    )
+                        ),
+                        // Display the last message under the user's name
+                      ],
+                    ),
+                  );
+                },
+              )
                   : Container(),
             ],
           ),
