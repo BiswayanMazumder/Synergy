@@ -222,7 +222,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
       updateactivity();
     }
   }
-
+  bool longpressed=false;
   @override
   Widget build(BuildContext context) {
     final filteredIndexes = _getFilteredIndexes();
@@ -233,7 +233,18 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
         automaticallyImplyLeading: false,
         backgroundColor: WhatsAppColors.darkGreen,
         actions: [
-          Row(
+          longpressed?Row(
+            children: [
+              InkWell(
+                onTap: () {},
+                child:
+                const Image(image: NetworkImage('https://cfyxewbfkabqzrtdyfxc.supabase.co/storage/v1/object/sign/Assets/images-removebg-preview%20(2)'
+                    '.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJBc3NldHMvaW1hZ2VzLXJlbW92ZWJnLXByZXZpZXcgKDIpLnBuZyIsImlhdCI6MTczNzIyM'
+                    'jg5NiwiZXhwIjoxNzY4NzU4ODk2fQ.Ey1AbMIdJy5iIUKwaGdv2w1XZRoG8Iy2eXsilJhlVBw&t=2025-01-18T17%3A54%3A57.504Z'),height: 25,width: 25,),
+              ),
+              const SizedBox(width: 20),
+            ],
+          ):  Row(
             children: [
               InkWell(
                 onTap: () {},
@@ -250,7 +261,14 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
             ],
           ),
         ],
-        title: Text(
+        title:longpressed?InkWell(
+          onTap: (){
+            setState(() {
+              longpressed=false;
+            });
+          },
+          child:const Icon(Icons.arrow_back,color: Colors.white,),
+        ): Text(
           'Connect',
           style: GoogleFonts.actor(
               color: Colors.white, fontWeight: FontWeight.w600),
@@ -317,6 +335,14 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
                       return Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: InkWell(
+                          onLongPress: (){
+                            setState(() {
+                              longpressed=true;
+                            });
+                            if (kDebugMode) {
+                              print('User ID: ${OtherUserUIDS[index]}');
+                            }
+                          },
                           onTap: () {
                             Navigator.push(
                               context,
@@ -328,50 +354,69 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
                               ),
                             );
                           },
-                          child: Row(
-                            children: [
-                              const CircleAvatar(
-                                backgroundImage: NetworkImage(
-                                    'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
-                              ),
-                              const SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Container(
+                            color:longpressed?Colors.green.shade900: Colors.transparent,
+                            child: Padding(
+                              padding: const EdgeInsets.all(10.0),
+                              child: Row(
                                 children: [
-                                  Text(
-                                    '+91 ${ContactName[actualIndex]}',
-                                    style: GoogleFonts.poppins(
-                                        color: CupertinoColors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16),
+                                   Stack(
+                                    children: [
+                                       const CircleAvatar(
+                                        backgroundImage: NetworkImage(
+                                            'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                                      ),
+                                      longpressed? const Positioned(
+                                        bottom: 0,
+                                          right: 0,
+                                          child: CircleAvatar(
+                                            radius: 8,
+                                        backgroundColor: Colors.green,
+                                            child: Icon(Icons.check,color: Colors.black,size: 10,),
+                                      )
+                                      ):Container()
+                                    ],
                                   ),
-                                  if (lastMessages.isNotEmpty)
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          lastMessagesstatus[actualIndex] == 'sent'
-                                              ? Icons.check
-                                              : lastMessagesstatus[actualIndex] ==
-                                              'delivered'
-                                              ? CupertinoIcons
-                                              .checkmark_alt_circle_fill
-                                              : CupertinoIcons.clock,
-                                          color: CupertinoColors.white,
-                                          size: 15,
+                                  const SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '+91 ${ContactName[actualIndex]}',
+                                        style: GoogleFonts.poppins(
+                                            color: CupertinoColors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 16),
+                                      ),
+                                      if (lastMessages.isNotEmpty)
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              lastMessagesstatus[actualIndex] == 'sent'
+                                                  ? Icons.check
+                                                  : lastMessagesstatus[actualIndex] ==
+                                                  'delivered'
+                                                  ? CupertinoIcons
+                                                  .checkmark_alt_circle_fill
+                                                  : CupertinoIcons.clock,
+                                              color: CupertinoColors.white,
+                                              size: 15,
+                                            ),
+                                            const SizedBox(width: 5),
+                                            Text(
+                                              lastMessages[actualIndex],
+                                              style: GoogleFonts.poppins(
+                                                  color: Colors.grey,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 15),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(width: 5),
-                                        Text(
-                                          lastMessages[actualIndex],
-                                          style: GoogleFonts.poppins(
-                                              color: Colors.grey,
-                                              fontWeight: FontWeight.w500,
-                                              fontSize: 15),
-                                        ),
-                                      ],
-                                    ),
+                                    ],
+                                  ),
                                 ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       );
@@ -390,7 +435,9 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
                     color: Colors.black.withOpacity(0.5),
                     borderRadius:const BorderRadius.all(Radius.circular(15))
                   ),
-                  child:const Image(image: NetworkImage('https://cfyxewbfkabqzrtdyfxc.supabase.co/storage/v1/object/sign/Assets/800px-Meta_AI_logo-removebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJBc3NldHMvODAwcHgtTWV0YV9BSV9sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzM3MjIxNjk2LCJleHAiOjE3Njg3NTc2OTZ9.SbXqTuyHtZkHazqLooZGB-09GsXQIpSxnGlDWfviX1s&t=2025-01-18T17%3A34%3A57.203Z'),
+                  child:const Image(image: NetworkImage('https://cfyxewbfkabqzrtdyfxc.supabase.co/storage/v1/object/sign/Assets/800px-Meta_AI_logo-remo'
+                      'vebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJBc3NldHMvODAwcHgtTWV0YV9BSV9sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5'
+                      'nIiwiaWF0IjoxNzM3MjIxNjk2LCJleHAiOjE3Njg3NTc2OTZ9.SbXqTuyHtZkHazqLooZGB-09GsXQIpSxnGlDWfviX1s&t=2025-01-18T17%3A34%3A57.203Z'),
                   height: 40,width: 40,),
                 ),)
           ],
