@@ -1,4 +1,4 @@
-# Synergy: Real-Time Chatting App
+# Synergy: Real-Time Chatting App  
 
 Welcome to **Synergy**, a powerful real-time messaging app designed to help you stay connected with your friends, family, and colleagues in an easy, secure, and fast way. With a user-friendly interface and a host of useful features, Synergy makes it effortless to communicate, share multimedia, and enjoy seamless interactions.
 
