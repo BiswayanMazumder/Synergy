@@ -3,10 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:pingstar/Images%20And%20Videos/imagesendingpage.dart';
 import 'package:pingstar/Logged%20In%20Users/allchatspage.dart';
 import 'package:pingstar/Utils/colors.dart';
 import 'package:intl/intl.dart';
-
+import 'dart:io';
 class ChattingPage extends StatefulWidget {
   final String UserID;
   final String Name;
@@ -18,6 +20,19 @@ class ChattingPage extends StatefulWidget {
 }
 
 class _ChattingPageState extends State<ChattingPage> {
+  File? _image;
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+      Navigator.push(context, MaterialPageRoute(builder: (context) => ImageSending(image: _image,otherUID: widget.UserID),));
+    }
+  }
   bool isonline = false;
   Future<void> getuseronlinestatus() async {
     final docRef =
@@ -27,6 +42,7 @@ class _ChattingPageState extends State<ChattingPage> {
         setState(() {
           isonline = docsnap.data()?['User Online'];
         });
+
       }
     });
   }
@@ -45,6 +61,7 @@ class _ChattingPageState extends State<ChattingPage> {
         'senderID': currentUser.uid,
         'receiverID': widget.UserID,
         'message': message,
+        'messageType':'text',
         'timestamp': timestamp,
         'status': 'pending',
       });
@@ -144,16 +161,16 @@ class _ChattingPageState extends State<ChattingPage> {
                 reverse: true,
                 itemBuilder: (context, index) {
                   final message = messages[index];
-                  final isCurrentUser =
-                      message['senderID'] == _auth.currentUser!.uid;
+                  final isCurrentUser = message['senderID'] == _auth.currentUser!.uid;
 
                   // Format timestamp
                   final Timestamp? timestamp = message['timestamp'];
                   final DateTime dateTime =
-                      timestamp != null ? timestamp.toDate() : DateTime.now();
+                  timestamp != null ? timestamp.toDate() : DateTime.now();
                   final formattedTime = DateFormat('hh:mm a').format(dateTime);
 
                   final status = message['status']; // Get the message status
+                  final messageType = message['messageType']; // Check the message type
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 15),
@@ -179,24 +196,42 @@ class _ChattingPageState extends State<ChattingPage> {
                                   ? CrossAxisAlignment.end
                                   : CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: isCurrentUser
-                                        ? Colors.green
-                                        : Colors.blue,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(15.0),
-                                    child: Text(
-                                      message['message'],
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w500,
+                                // Display either text or image based on message type
+                                if (messageType == 'text')
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: isCurrentUser
+                                          ? Colors.green
+                                          : Colors.blue,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(15.0),
+                                      child: Text(
+                                        message['message'],
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                else if (messageType == 'image')
+                                  Container(
+                                    width: 250,
+                                    height: 250,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.grey[300],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Image.network(
+                                        message['message'], // Assuming the 'message' field holds the image URL
+                                        fit: BoxFit.cover,
                                       ),
                                     ),
                                   ),
-                                ),
                                 const SizedBox(height: 5),
                                 Row(
                                   children: [
@@ -214,11 +249,9 @@ class _ChattingPageState extends State<ChattingPage> {
                                         status == 'pending'
                                             ? CupertinoIcons.clock
                                             : status == 'sent'
-                                                ? Icons.check
-                                                : Icons.remove_red_eye,
-                                        color: status == 'seen'
-                                            ? Colors.blue
-                                            : CupertinoColors.white,
+                                            ? Icons.check
+                                            : Icons.remove_red_eye,
+                                        color: CupertinoColors.white,
                                         size: 12,
                                       ),
                                   ],
@@ -240,6 +273,7 @@ class _ChattingPageState extends State<ChattingPage> {
               );
             },
           ),
+
           // Message typing section
           Align(
             alignment: Alignment.bottomCenter,
@@ -252,6 +286,7 @@ class _ChattingPageState extends State<ChattingPage> {
                     icon: const Icon(Icons.camera_alt_outlined, color: Colors.grey),
                     onPressed: () {
                       // Handle attachment button press
+                      _pickImage();
                     },
                   ),
                   Expanded(
