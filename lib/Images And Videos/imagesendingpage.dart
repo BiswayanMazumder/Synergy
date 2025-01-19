@@ -123,6 +123,8 @@ class _ImageSendingState extends State<ImageSending> {
         color: Colors.black,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             IconButton(
               icon: const Icon(Icons.send, color: Colors.green),
