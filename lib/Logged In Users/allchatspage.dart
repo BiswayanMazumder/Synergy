@@ -240,7 +240,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
                 child:
                 const Image(image: NetworkImage('https://cfyxewbfkabqzrtdyfxc.supabase.co/storage/v1/object/sign/Assets/images-removebg-preview%20(2)'
                     '.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJBc3NldHMvaW1hZ2VzLXJlbW92ZWJnLXByZXZpZXcgKDIpLnBuZyIsImlhdCI6MTczNzIyM'
-                    'jg5NiwiZXhwIjoxNzY4NzU4ODk2fQ.Ey1AbMIdJy5iIUKwaGdv2w1XZRoG8Iy2eXsilJhlVBw&t=2025-01-18T17%3A54%3A57.504Z'),height: 25,width: 25,),
+                    'jg5NiwiZXhwIjoxNzY4NzU4ODk2fQ.Ey1AbMIdJy5iIUKwaGdv2w1XZRoG8Iy2eXsilJhlVBw&t=2025-01-18T17%3A54%3A57.504Z'),height: 20,width: 20,),
               ),
               const SizedBox(width: 20),
             ],
