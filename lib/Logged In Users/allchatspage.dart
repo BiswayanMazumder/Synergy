@@ -28,6 +28,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
   List<String> ContactName = [];
   List<String> OtherUserUIDS = [];
   List<String> lastMessages = [];
+  List<String> lastMessagestype = [];
   List<String> lastMessagesstatus = [];
 
   String usercontactnumber = '';
@@ -168,6 +169,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
       if (lastMessageSnap.docs.isNotEmpty) {
         setState(() {
           lastMessages.add(lastMessageSnap.docs.first['message'] ?? '');
+          lastMessagestype.add(lastMessageSnap.docs.first['messageType'] ?? '');
           lastMessagesstatus.add(lastMessageSnap.docs.first['status'] ?? '');
         });
       }
@@ -425,12 +427,23 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
                                               size: 15,
                                             ),
                                             const SizedBox(width: 5),
-                                            Text(
-                                              lastMessages[actualIndex],
+                                            lastMessagestype[actualIndex]=='text'?  Text(
+                                               lastMessages[actualIndex],
                                               style: GoogleFonts.poppins(
                                                   color: Colors.grey,
                                                   fontWeight: FontWeight.w500,
                                                   fontSize: 15),
+                                            ):Row(
+                                              children: [
+                                                const Icon(Icons.image,color: Colors.grey,size: 18,),
+                                                const SizedBox(
+                                                  width: 5,
+                                                ),
+                                                Text('Photo',style: GoogleFonts.poppins(
+                                                    color: Colors.grey,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 15),)
+                                              ],
                                             ),
                                           ],
                                         ),
