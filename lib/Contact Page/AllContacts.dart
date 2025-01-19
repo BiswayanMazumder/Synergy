@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:contacts_service/contacts_service.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,6 +10,7 @@ import 'package:pingstar/Utils/colors.dart';
 class AllContacts extends StatefulWidget {
   final List contactname;
   final List contactnumber;
+
   const AllContacts({super.key, required this.contactname, required this.contactnumber});
 
   @override
@@ -38,13 +38,18 @@ class _AllContactsState extends State<AllContacts> {
   }
 
   Future<void> getAllContacts() async {
+    // print('Contact Names from widget: ${widget.contactname}');
+    // print('Contact Numbers from widget: ${widget.contactnumber}');
+
     final docsnap = await _firestore.collection('User Details(User ID Basis)').get();
     if (docsnap.docs.isNotEmpty) {
       List<String> contactNumbers = [];
 
       for (var doc in docsnap.docs) {
-        var contactNumber = '${doc['Country Code']}${doc['Mobile Number']}';
+        var contactNumber = '${doc['Mobile Number']}';
         contactNumber = normalizePhoneNumber(contactNumber);
+
+        // print('Firestore contact number: $contactNumber');
 
         if (contactNumber != null) {
           contactNumbers.add(contactNumber);
@@ -57,6 +62,8 @@ class _AllContactsState extends State<AllContacts> {
       for (int i = 0; i < widget.contactnumber.length; i++) {
         String phoneContact = normalizePhoneNumber(widget.contactnumber[i]);
 
+        // print('Phone contact from contacts service: $phoneContact');
+
         if (contactNumbers.contains(phoneContact) && !addedContactNumbers.contains(phoneContact)) {
           ContactNumber.add(widget.contactnumber[i]);
           contactname.add(widget.contactname[i]);
@@ -66,13 +73,19 @@ class _AllContactsState extends State<AllContacts> {
       }
 
       for (int i = 0; i < ContactNumber.length; i++) {
-        final docSnap = await _firestore.collection('User Details(Contact Number Basis)').doc(ContactNumber[i].substring(3)).get();
+        final docSnap = await _firestore.collection('User Details(Contact Number Basis)').doc(ContactNumber[i]).get();
         if (docSnap.exists) {
           UserIDS.add(docSnap.data()?['UID']);
           Statuses.add(docSnap.data()?['Status']);
         }
       }
     }
+
+    // Debugging output
+    // print('Final Contact Names: $contactname');
+    // print('Final Contact Numbers: $ContactNumber');
+    // print('Final User IDS: $UserIDS');
+    // print('Final Statuses: $Statuses');
 
     setState(() {});
   }
@@ -215,5 +228,3 @@ class _AllContactsState extends State<AllContacts> {
     );
   }
 }
-
-

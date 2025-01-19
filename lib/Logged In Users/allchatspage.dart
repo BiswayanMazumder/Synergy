@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pingstar/Chat%20Page/UserChats.dart';
 import 'package:pingstar/Contact%20Page/AllContacts.dart';
 import 'package:pingstar/Utils/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AllChats extends StatefulWidget {
   const AllChats({super.key});
@@ -45,6 +46,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
           usercontactnumber = docsnap.data()?['Mobile Number'];
         });
       }
+
     } catch (e) {
       if (kDebugMode) print(e);
     }
@@ -109,6 +111,8 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
           contactnumber = numbers;
         });
       }
+      print(contactnumber);
+      print(contactname);
     } catch (e) {
       if (kDebugMode) print('Failed to fetch contacts: $e');
     }
@@ -121,9 +125,10 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
         .collection('Recent Chats')
         .doc(_auth.currentUser!.uid)
         .get();
+
     if (docsnap.exists) {
-      OtherUserUIDS =
-      List<String>.from(docsnap.data()?['Other User UID'] ?? []);
+      final data = docsnap.data() as Map<String, dynamic>; // Cast to Map
+      OtherUserUIDS = List<String>.from(data['Other User UID'] ?? []);  // Fetch 'Other User UID' as List<String>
     }
 
     for (int i = 0; i < OtherUserUIDS.length; i++) {
@@ -134,19 +139,23 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
       if (UserSnap.exists) {
         setState(() {
           mobileNumber = UserSnap.data()?['Mobile Number'] ?? '';
-          ContactNumber.add(normalizePhoneNumber(mobileNumber));
         });
       }
     }
-
+    ContactNumber.add(mobileNumber);
     for (int i = 0; i < ContactNumber.length; i++) {
-      String normalizedContactNumber = normalizePhoneNumber(contactnumber[i]);
-
-      if (ContactNumber[i] == normalizedContactNumber) {
-        ContactName.add(contactname[i]);
-      } else {
+      if(contactnumber.contains(mobileNumber)){
+        int index=contactnumber.indexOf(mobileNumber);
+        ContactName.add(contactname[index]);
+      }
+      else{
         ContactName.add(mobileNumber);
       }
+      // if (ContactNumber[i] == contactnumber[i]) {
+      //   ContactName.add(contactname[i]);
+      // } else {
+      //   ContactName.add(mobileNumber);
+      // }
 
       final lastMessageSnap = await _firestore
           .collection('chats')
@@ -222,7 +231,9 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
       updateactivity();
     }
   }
-  bool longpressed=false;
+
+  bool longpressed = false;
+
   @override
   Widget build(BuildContext context) {
     final filteredIndexes = _getFilteredIndexes();
@@ -233,42 +244,53 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
         automaticallyImplyLeading: false,
         backgroundColor: WhatsAppColors.darkGreen,
         actions: [
-          longpressed?Row(
+          longpressed ? Row(
             children: [
               InkWell(
-                onTap: () {},
-                child:
-                const Image(image: NetworkImage('https://cfyxewbfkabqzrtdyfxc.supabase.co/storage/v1/object/sign/Assets/images-removebg-preview%20(2)'
-                    '.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJBc3NldHMvaW1hZ2VzLXJlbW92ZWJnLXByZXZpZXcgKDIpLnBuZyIsImlhdCI6MTczNzIyM'
-                    'jg5NiwiZXhwIjoxNzY4NzU4ODk2fQ.Ey1AbMIdJy5iIUKwaGdv2w1XZRoG8Iy2eXsilJhlVBw&t=2025-01-18T17%3A54%3A57.504Z'),height: 20,width: 20,),
+                onTap: ()async{
+                  // Implement your delete functionality here
+                  if (kDebugMode) {
+                    print('Filtered $OtherUserUIDS');
+                  }
+                  final prefs=await SharedPreferences.getInstance();
+                  String selectedUID=prefs.getString('Selected_UID')!;
+                  OtherUserUIDS.remove(selectedUID);
+                  if (kDebugMode) {
+                    print('Filtered $OtherUserUIDS');
+                  }
+                  setState(() {
+                    longpressed=false;
+                  });
+                },
+                child: const Icon(CupertinoIcons.delete,color: CupertinoColors.white),
               ),
               const SizedBox(width: 20),
             ],
-          ):  Row(
+          ) : Row(
             children: [
               InkWell(
                 onTap: () {},
-                child:
-                const Icon(Icons.camera_alt_outlined, color: Colors.white),
+                child: const Icon(Icons.camera_alt_outlined, color: Colors.white),
               ),
               const SizedBox(width: 10),
               InkWell(
                 onTap: () {},
-                child: const Icon(CupertinoIcons.ellipsis_vertical,
-                    color: Colors.white),
+                child: const Icon(CupertinoIcons.ellipsis_vertical, color: Colors.white),
               ),
               const SizedBox(width: 10),
             ],
           ),
         ],
-        title:longpressed?InkWell(
-          onTap: (){
+        title: longpressed
+            ? InkWell(
+          onTap: () {
             setState(() {
-              longpressed=false;
+              longpressed = false;
             });
           },
-          child:const Icon(Icons.arrow_back,color: Colors.white,),
-        ): Text(
+          child: const Icon(Icons.arrow_back, color: Colors.white),
+        )
+            : Text(
           'Connect',
           style: GoogleFonts.actor(
               color: Colors.white, fontWeight: FontWeight.w600),
@@ -335,9 +357,11 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
                       return Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: InkWell(
-                          onLongPress: (){
+                          onLongPress: () async {
+                            final prefs = await SharedPreferences.getInstance();
+                            prefs.setString('Selected_UID', OtherUserUIDS[index]);
                             setState(() {
-                              longpressed=true;
+                              longpressed = true;
                             });
                             if (kDebugMode) {
                               print('User ID: ${OtherUserUIDS[index]}');
@@ -349,32 +373,32 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
                               MaterialPageRoute(
                                 builder: (context) => ChattingPage(
                                   UserID: OtherUserUIDS[actualIndex],
-                                  Name: '+91 ${ContactName[actualIndex]}',
+                                  Name: ContactName[actualIndex],
                                 ),
                               ),
                             );
                           },
                           child: Container(
-                            color:longpressed?Colors.green.shade900: Colors.transparent,
+                            color: longpressed ? Colors.green.shade900 : Colors.transparent,
                             child: Padding(
                               padding: const EdgeInsets.all(10.0),
                               child: Row(
                                 children: [
-                                   Stack(
+                                  Stack(
                                     children: [
-                                       const CircleAvatar(
+                                      const CircleAvatar(
                                         backgroundImage: NetworkImage(
                                             'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
                                       ),
-                                      longpressed? const Positioned(
+                                      longpressed ? const Positioned(
                                         bottom: 0,
-                                          right: 0,
-                                          child: CircleAvatar(
-                                            radius: 8,
-                                        backgroundColor: Colors.green,
-                                            child: Icon(Icons.check,color: Colors.black,size: 10,),
-                                      )
-                                      ):Container()
+                                        right: 0,
+                                        child: CircleAvatar(
+                                          radius: 8,
+                                          backgroundColor: Colors.green,
+                                          child: Icon(Icons.check, color: Colors.black, size: 10),
+                                        ),
+                                      ) : Container()
                                     ],
                                   ),
                                   const SizedBox(width: 10),
@@ -382,7 +406,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        '+91 ${ContactName[actualIndex]}',
+                                        ContactName[actualIndex],
                                         style: GoogleFonts.poppins(
                                             color: CupertinoColors.white,
                                             fontWeight: FontWeight.w600,
@@ -394,10 +418,8 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
                                             Icon(
                                               lastMessagesstatus[actualIndex] == 'sent'
                                                   ? Icons.check
-                                                  : lastMessagesstatus[actualIndex] ==
-                                                  'delivered'
-                                                  ? CupertinoIcons
-                                                  .checkmark_alt_circle_fill
+                                                  : lastMessagesstatus[actualIndex] == 'delivered'
+                                                  ? CupertinoIcons.checkmark_alt_circle_fill
                                                   : CupertinoIcons.clock,
                                               color: CupertinoColors.white,
                                               size: 15,
@@ -425,21 +447,24 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
                 ),
               ],
             ),
-             Positioned(
-                bottom: 90,
-                right: 0,
-                child: Container(
-                  height: 50,
-                  width: 50,
-                  decoration: BoxDecoration(
+            Positioned(
+              bottom: 90,
+              right: 0,
+              child: Container(
+                height: 50,
+                width: 50,
+                decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.5),
-                    borderRadius:const BorderRadius.all(Radius.circular(15))
-                  ),
-                  child:const Image(image: NetworkImage('https://cfyxewbfkabqzrtdyfxc.supabase.co/storage/v1/object/sign/Assets/800px-Meta_AI_logo-remo'
-                      'vebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJBc3NldHMvODAwcHgtTWV0YV9BSV9sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5'
-                      'nIiwiaWF0IjoxNzM3MjIxNjk2LCJleHAiOjE3Njg3NTc2OTZ9.SbXqTuyHtZkHazqLooZGB-09GsXQIpSxnGlDWfviX1s&t=2025-01-18T17%3A34%3A57.203Z'),
-                  height: 40,width: 40,),
-                ),)
+                    borderRadius: const BorderRadius.all(Radius.circular(15))
+                ),
+                child: const Image(
+                  image: NetworkImage(
+                      'https://cfyxewbfkabqzrtdyfxc.supabase.co/storage/v1/object/sign/Assets/800px-Meta_AI_logo-remo'
+                          'vebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJBc3NldHMvODAwcHgtTWV0YV9BSV9sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzM3MjIxNjk2LCJleHAiOjE3Njg3NTc2OTZ9.SbXqTuyHtZkHazqLooZGB-09GsXQIpSxnGlDWfviX1s&t=2025-01-18T17%3A34%3A57.203Z'),
+                  height: 40, width: 40,
+                ),
+              ),
+            ),
           ],
         ),
       ),
