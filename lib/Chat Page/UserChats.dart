@@ -213,10 +213,9 @@ class _ChattingPageState extends State<ChattingPage> {
                                       Icon(
                                         status == 'pending'
                                             ? CupertinoIcons.clock
-                                            : status == 'delivered'
-                                                ? CupertinoIcons
-                                                    .checkmark_alt_circle_fill
-                                                : Icons.check,
+                                            : status == 'sent'
+                                                ? Icons.check
+                                                : Icons.remove_red_eye,
                                         color: status == 'seen'
                                             ? Colors.blue
                                             : CupertinoColors.white,
@@ -250,7 +249,7 @@ class _ChattingPageState extends State<ChattingPage> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.attach_file, color: Colors.white),
+                    icon: const Icon(Icons.camera_alt_outlined, color: Colors.grey),
                     onPressed: () {
                       // Handle attachment button press
                     },
