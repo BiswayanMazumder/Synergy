@@ -1,9 +1,13 @@
 import 'package:blur/blur.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:pingstar/Status%20Pages/upload_status.dart';
 import 'package:pingstar/Utils/colors.dart';
-
+import 'dart:io';
 class UpdatesPage extends StatefulWidget {
   const UpdatesPage({super.key});
 
@@ -13,6 +17,39 @@ class UpdatesPage extends StatefulWidget {
 
 class _UpdatesPageState extends State<UpdatesPage> {
   bool statusseen = false;
+  File? _image;
+  final FirebaseAuth _auth=FirebaseAuth.instance;
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+      Navigator.push(context, MaterialPageRoute(builder: (context) => StatusUploading(image: _image, otherUID:_auth.currentUser!.uid)));
+    }
+  }
+  final FirebaseFirestore _firestore=FirebaseFirestore.instance;
+  String ImageUrl='';
+  void _listenToStatus() {
+    _firestore.collection('Users Status').doc(_auth.currentUser!.uid)
+        .snapshots()
+        .listen((docsnap) {
+      if (docsnap.exists) {
+        setState(() {
+          ImageUrl = docsnap.data()?['Image URL'];
+        });
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _listenToStatus();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,9 +119,9 @@ class _UpdatesPageState extends State<UpdatesPage> {
                       children: [
                         InkWell(
                           onTap: () {
-                            setState(() {
-                              statusseen = true;
-                            });
+                          if(ImageUrl==''){
+                            _pickImage();
+                          }
                           },
                           child: Container(
                             height: 250,
@@ -93,6 +130,15 @@ class _UpdatesPageState extends State<UpdatesPage> {
                                 color: Colors.grey.shade500.withOpacity(0.5),
                                 borderRadius: const BorderRadius.all(
                                     Radius.circular(10))),
+                            child: ImageUrl==''?Container():Container(
+                              height: 250,
+                              width: 180,
+                              decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(10))
+                              ),
+                              child: Image(image: NetworkImage(ImageUrl),fit: BoxFit.fill,),
+                            ),
 
                           ),
                         ),
