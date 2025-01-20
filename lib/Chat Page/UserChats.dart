@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pingstar/Images%20And%20Videos/imagesendingpage.dart';
 import 'package:pingstar/Logged%20In%20Users/allchatspage.dart';
+import 'package:pingstar/Multimedia%20Viewing%20Pages/Image_viewing.dart';
 import 'package:pingstar/Utils/colors.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
@@ -217,18 +218,26 @@ class _ChattingPageState extends State<ChattingPage> {
                                     ),
                                   )
                                 else if (messageType == 'image')
-                                  Container(
-                                    width: 250,
-                                    height: 250,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: Colors.grey[300],
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: Image.network(
-                                        message['message'], // Assuming the 'message' field holds the image URL
-                                        fit: BoxFit.cover,
+                                  InkWell(
+                                    onTap:(){
+                                      // print(message['message']);
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => Image_viewing(UserID: widget.UserID,
+                                          Name: widget.Name,
+                                          Image_Link: message['message']),));
+                                    },
+                                    child: Container(
+                                      width: 250,
+                                      height: 250,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Colors.grey[300],
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(10),
+                                        child: Image.network(
+                                          message['message'], // Assuming the 'message' field holds the image URL
+                                          fit: BoxFit.cover,
+                                        ),
                                       ),
                                     ),
                                   ),
