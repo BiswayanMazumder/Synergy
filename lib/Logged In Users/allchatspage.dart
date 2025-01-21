@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pingstar/AI%20Chat%20Page/AIChat.dart';
 import 'package:pingstar/Chat%20Page/UserChats.dart';
 import 'package:pingstar/Contact%20Page/AllContacts.dart';
 import 'package:pingstar/Utils/colors.dart';
@@ -463,18 +464,23 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
             Positioned(
               bottom: 90,
               right: 0,
-              child: Container(
-                height: 50,
-                width: 50,
-                decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    borderRadius: const BorderRadius.all(Radius.circular(15))
-                ),
-                child: const Image(
-                  image: NetworkImage(
-                      'https://cfyxewbfkabqzrtdyfxc.supabase.co/storage/v1/object/sign/Assets/800px-Meta_AI_logo-remo'
-                          'vebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJBc3NldHMvODAwcHgtTWV0YV9BSV9sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzM3MjIxNjk2LCJleHAiOjE3Njg3NTc2OTZ9.SbXqTuyHtZkHazqLooZGB-09GsXQIpSxnGlDWfviX1s&t=2025-01-18T17%3A34%3A57.203Z'),
-                  height: 40, width: 40,
+              child: InkWell(
+                onTap:(){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => AIChatPage(),));
+                },
+                child: Container(
+                  height: 50,
+                  width: 50,
+                  decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      borderRadius: const BorderRadius.all(Radius.circular(15))
+                  ),
+                  child: const Image(
+                    image: NetworkImage(
+                        'https://cfyxewbfkabqzrtdyfxc.supabase.co/storage/v1/object/sign/Assets/800px-Meta_AI_logo-remo'
+                            'vebg-preview.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJBc3NldHMvODAwcHgtTWV0YV9BSV9sb2dvLXJlbW92ZWJnLXByZXZpZXcucG5nIiwiaWF0IjoxNzM3MjIxNjk2LCJleHAiOjE3Njg3NTc2OTZ9.SbXqTuyHtZkHazqLooZGB-09GsXQIpSxnGlDWfviX1s&t=2025-01-18T17%3A34%3A57.203Z'),
+                    height: 40, width: 40,
+                  ),
                 ),
               ),
             ),
