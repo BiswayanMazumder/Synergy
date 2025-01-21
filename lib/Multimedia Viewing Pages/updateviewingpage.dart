@@ -98,7 +98,7 @@ class _UpdateViewingState extends State<UpdateViewing> {
                     // Displaying story image from network
                     Image.network(
                       _stories[index],
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                     ),
                     Positioned(
                       bottom: 20,

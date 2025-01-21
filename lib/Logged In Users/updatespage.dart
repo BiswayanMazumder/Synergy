@@ -137,11 +137,11 @@ class _UpdatesPageState extends State<UpdatesPage> {
                             child: ImageUrl==''?Container():Container(
                               height: 250,
                               width: 180,
-                              decoration: BoxDecoration(
-                                  borderRadius: const BorderRadius.all(
+                              decoration: const BoxDecoration(
+                                  borderRadius: BorderRadius.all(
                                       Radius.circular(10))
                               ),
-                              child: Image(image: NetworkImage(ImageUrl),fit: BoxFit.fill,),
+                              child: Image(image: NetworkImage(ImageUrl),fit: BoxFit.contain,),
                             ),
 
                           ),
