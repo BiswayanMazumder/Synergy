@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pingstar/Multimedia%20Viewing%20Pages/updateviewingpage.dart';
 import 'package:pingstar/Status%20Pages/upload_status.dart';
 import 'package:pingstar/Utils/colors.dart';
 import 'dart:io';
@@ -121,6 +122,9 @@ class _UpdatesPageState extends State<UpdatesPage> {
                           onTap: () {
                           if(ImageUrl==''){
                             _pickImage();
+                          }
+                          if(ImageUrl!=''){
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => UpdateViewing(imageUrl: ImageUrl,Name: 'My Status'),));
                           }
                           },
                           child: Container(
