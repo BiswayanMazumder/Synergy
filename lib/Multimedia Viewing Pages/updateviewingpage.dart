@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pingstar/Utils/colors.dart';
 
 class UpdateViewing extends StatefulWidget {
   final String imageUrl;  // The image URL passed from the previous page
@@ -101,16 +103,16 @@ class _UpdateViewingState extends State<UpdateViewing> {
                       fit: BoxFit.contain,
                     ),
                     Positioned(
-                      bottom: 20,
+                      top: 80,
                       left: 20,
                       child: Row(
                         children: [
                           // Profile image
                           const CircleAvatar(
-                            radius: 25,
+                            radius: 20,
                             backgroundImage: NetworkImage('https://g1uudlawy6t63z36.public.blob.vercel-storage.com/e64edd025438449584ac6c481eafa22d.png'), // Display the passed network image
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 20),
                           Text(
                             widget.Name, // You can replace this with dynamic data
                             style: GoogleFonts.poppins(
@@ -122,7 +124,7 @@ class _UpdateViewingState extends State<UpdateViewing> {
                       ),
                     ),
                     Positioned(
-                      bottom: 10,
+                      top: 50,
                       left: 20,
                       right: 20,
                       child: LinearProgressIndicator(
@@ -136,13 +138,60 @@ class _UpdateViewingState extends State<UpdateViewing> {
               },
             ),
           ),
-          _buildStoryIndicators(),
+          InkWell(
+              onTap: (){
+                showModalBottomSheet(context: context,
+                    showDragHandle: false,
+                    builder: (context) {
+                      return Container(
+                        height: MediaQuery.sizeOf(context).height/1.5,
+                        width: MediaQuery.sizeOf(context).width/1.1,
+                        decoration:const BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(10))
+                        ),
+                        child: Column(
+                          children: [
+                            Container(
+                              // height:150,
+                              width: MediaQuery.sizeOf(context).width,
+                              color: WhatsAppColors.darkGreen,
+                              child: Padding(
+                                padding: const EdgeInsets.all(30.0),
+                                child: Center(
+                                  child: Text(' Viewed by 11',style: GoogleFonts.poppins(
+                                      color: Colors.white,fontSize: 18,fontWeight: FontWeight.w500
+                                  ),),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },);
+              },
+              child:Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Icon(CupertinoIcons.eye_solid,color: Colors.white,),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Text('11',style: GoogleFonts.poppins(
+                    color: Colors.white
+                  ),)
+                ],
+              )),
+          const SizedBox(
+            height: 20,
+          )
         ],
       ),
     );
   }
 
   // Build indicators for the stories (like dots below each story)
+
   Widget _buildStoryIndicators() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
