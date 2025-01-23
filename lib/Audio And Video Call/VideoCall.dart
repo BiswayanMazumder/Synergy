@@ -7,9 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pingstar/Utils/colors.dart';
 
 class VideoCallPage extends StatefulWidget {
-  final String name; // Other user's name
-  final String userId; // Other user's ID (used as the room ID)
-  final bool isInitiator; // Indicates if the user initiated the call
+  final String name;
+  final String userId;
+  final bool isInitiator;
 
   const VideoCallPage({
     Key? key,
@@ -30,16 +30,18 @@ class _VideoCallPageState extends State<VideoCallPage> {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  bool iscameraon = true; // Controls camera on/off
-  bool ismicon = true; // Controls microphone on/off
-  bool isCallPicked = false; // Indicates whether the call has been picked
+  bool iscameraon = true;
+  bool ismicon = true;
+  bool isCallPicked = false;
+
+  bool isbusy = false;
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
     super.initState();
     _initializeRenderers();
-    fetchactivecalls();
-    // Initialize the peer connection after renderers are initialized
+    // fetchActiveCalls();
     _initializePeerConnection().then((_) {
       if (widget.isInitiator) {
         _createRoom();
@@ -54,7 +56,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
   Future<void> _initializeRenderers() async {
     await _localRenderer.initialize();
     await _remoteRenderer.initialize();
-    _startLocalStream();
+    await _startLocalStream();
   }
 
   Future<void> _startLocalStream() async {
@@ -90,7 +92,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
       if (event.track.kind == 'video') {
         setState(() {
           isCallPicked = true;
-          _stopAudio(); // Stop audio playback
+          _stopAudio();
           _remoteRenderer.srcObject = event.streams[0];
         });
       }
@@ -98,10 +100,10 @@ class _VideoCallPageState extends State<VideoCallPage> {
   }
 
   Future<void> _createRoom() async {
-    await fetchactivecalls();
+    await fetchActiveCalls();
     if (!isbusy) {
       final roomDoc =
-          _firestore.collection('rooms').doc(_auth.currentUser!.uid);
+      _firestore.collection('rooms').doc(_auth.currentUser!.uid);
 
       final offer = await _peerConnection.createOffer();
       await _peerConnection.setLocalDescription(offer);
@@ -146,7 +148,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
 
     final data = snapshot.data()!;
     final offer =
-        RTCSessionDescription(data['offer']['sdp'], data['offer']['type']);
+    RTCSessionDescription(data['offer']['sdp'], data['offer']['type']);
     await _peerConnection.setRemoteDescription(offer);
 
     final answer = await _peerConnection.createAnswer();
@@ -186,33 +188,12 @@ class _VideoCallPageState extends State<VideoCallPage> {
     }
   }
 
-  Future<void> writeactivecalls() async {
-    await _firestore
-        .collection('Active Calls')
-        .doc(_auth.currentUser!.uid)
-        .set({'User Busy': false});
-  }
-
-  bool isbusy = false;
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  void _playAudioLoop() async {
-    await _audioPlayer.setReleaseMode(ReleaseMode.loop); // Loop the audio
-    await _audioPlayer.play(
-      UrlSource(
-        'https://cfyxewbfkabqzrtdyfxc.supabase.co/storage/v1/object/sign/Audio%20Files/videoplayback%20(2).wav?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJBdWRpbyBGaWxlcy92aWRlb3BsYXliYWNrICgyKS53YXYiLCJpYXQiOjE3Mzc2NTEzMzQsImV4cCI6MTc2OTE4NzMzNH0.reH9rJ7ygYo78erwtmjfuhXFnEsx2g4RgWiQSwOHBwE&t=2025-01-23T16%3A55%3A34.702Z',
-      ),
-    );
-  }
-  void _stopAudio() async {
-    await _audioPlayer.stop();
-  }
-
-  Future<void> fetchactivecalls() async {
-    final docsnap =
-        await _firestore.collection('Active Calls').doc(widget.userId).get();
-    if (docsnap.exists) {
+  Future<void> fetchActiveCalls() async {
+    final docSnap =
+    await _firestore.collection('Active Calls').doc(widget.userId).get();
+    if (docSnap.exists) {
       setState(() {
-        isbusy = docsnap.data()?['User Busy'];
+        isbusy = docSnap.data()?['User Busy'];
       });
     }
     if (!isbusy && !isCallPicked) {
@@ -220,12 +201,43 @@ class _VideoCallPageState extends State<VideoCallPage> {
     }
   }
 
+  void _playAudioLoop() async {
+    await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+    await _audioPlayer.play(
+      UrlSource(
+        'https://cfyxewbfkabqzrtdyfxc.supabase.co/storage/v1/object/sign/Audio%20Files/videoplayback%20(2).wav?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1cmwiOiJBdWRpbyBGaWxlcy92aWRlb3BsYXliYWNrICgyKS53YXYiLCJpYXQiOjE3Mzc2NTEzMzQsImV4cCI6MTc2OTE4NzMzNH0.reH9rJ7ygYo78erwtmjfuhXFnEsx2g4RgWiQSwOHBwE&t=2025-01-23T16%3A55%3A34.702Z',
+      ),
+    );
+  }
+
+  void _stopAudio() async {
+    await _audioPlayer.stop();
+  }
+
+  Future<void> _endCall() async {
+    _stopAudio();
+    await _firestore
+        .collection('Active Calls')
+        .doc(_auth.currentUser!.uid)
+        .set({'User Busy': false});
+    await _firestore.collection('rooms').doc(_auth.currentUser!.uid).delete();
+    final candidatesRef = _firestore
+        .collection('rooms')
+        .doc(_auth.currentUser!.uid)
+        .collection('candidates');
+    final candidatesSnapshot = await candidatesRef.get();
+    for (final doc in candidatesSnapshot.docs) {
+      await doc.reference.delete();
+    }
+    Navigator.pop(context);
+  }
+
   @override
   void dispose() {
     _localRenderer.dispose();
-    _audioPlayer.dispose();
     _remoteRenderer.dispose();
     _peerConnection.close();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -234,7 +246,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Remote video feed (or local feed if call isn't picked)
+          // Fullscreen remote video feed when call is picked
           Positioned.fill(
             child: SizedBox(
               width: MediaQuery.sizeOf(context).width,
@@ -245,12 +257,13 @@ class _VideoCallPageState extends State<VideoCallPage> {
               ),
             ),
           ),
-          // Local video feed in a small box when call is picked
+
+          // Local video feed in a small box at the bottom right when call is picked
           if (isCallPicked)
             Positioned(
-              bottom: 180,
+              bottom: 200,
               right: 20,
-              width: 180,
+              width: 120,
               height: 160,
               child: Container(
                 decoration: BoxDecoration(
@@ -264,6 +277,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
                 ),
               ),
             ),
+
           // Caller name and status
           Positioned(
             top: 80,
@@ -294,6 +308,8 @@ class _VideoCallPageState extends State<VideoCallPage> {
               ),
             ),
           ),
+
+          // Call control buttons
           Positioned(
             bottom: 50,
             left: 20,
@@ -312,8 +328,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
                     onTap: _toggleCamera,
                     child: const CircleAvatar(
                       backgroundColor: Colors.white,
-                      child: Icon(Icons.flip_camera_ios_rounded,
-                          color: Colors.black),
+                      child: Icon(Icons.flip_camera_ios_rounded, color: Colors.black),
                     ),
                   ),
                   InkWell(
@@ -339,14 +354,14 @@ class _VideoCallPageState extends State<VideoCallPage> {
                   InkWell(
                     onTap: () async {
                       _stopAudio();
-                      await writeactivecalls();
+                      await _endCall();
                       // Delete the main document
                       await _firestore
                           .collection('rooms')
                           .doc(_auth.currentUser!.uid)
                           .delete();
 
-// Delete all documents in the 'candidates' subcollection
+                      // Delete all documents in the 'candidates' subcollection
                       final candidatesRef = _firestore
                           .collection('rooms')
                           .doc(_auth.currentUser!.uid)
@@ -372,4 +387,5 @@ class _VideoCallPageState extends State<VideoCallPage> {
       ),
     );
   }
+
 }

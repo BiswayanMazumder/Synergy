@@ -92,6 +92,7 @@ class _ChattingPageState extends State<ChattingPage> {
   void initState() {
     // TODO: implement initState
     getuseronlinestatus();
+    print("Other User ID ${widget.UserID}");
   }
 
   @override
@@ -102,12 +103,10 @@ class _ChattingPageState extends State<ChattingPage> {
         title: Row(
           children: [
             const CircleAvatar(
-              backgroundImage: NetworkImage(
-                  'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+              backgroundImage: NetworkImage('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
             ),
             const SizedBox(width: 20),
             Column(
-              mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
@@ -122,17 +121,18 @@ class _ChattingPageState extends State<ChattingPage> {
             ),
           ],
         ),
-        actions:  [
+        actions: [
           Row(
             children: [
               const Icon(Icons.call, color: Colors.white),
               const SizedBox(width: 30),
               InkWell(
-                  onTap: ()async{
-                    await writeactivecalls();
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => VideoCallPage(name: widget.Name, userId: widget.UserID, isInitiator: true)));
-                  },
-                  child: const Icon(Icons.video_call, color: Colors.white)),
+                onTap: () async {
+                  await writeactivecalls();
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => VideoCallPage(name: widget.Name, userId: widget.UserID, isInitiator: false)));
+                },
+                child: const Icon(Icons.video_call, color: Colors.white),
+              ),
               const SizedBox(width: 20),
             ],
           ),
@@ -148,153 +148,159 @@ class _ChattingPageState extends State<ChattingPage> {
       body: Stack(
         children: [
           // Chat messages list
-          StreamBuilder<QuerySnapshot>(
-            stream: _firestore
-                .collection('chats')
-                .where('senderID', isEqualTo: _auth.currentUser!.uid)
-                .where('receiverID', isEqualTo: widget.UserID)
-                .orderBy('timestamp', descending: true)
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
+      StreamBuilder<QuerySnapshot>(
+      stream: _firestore
+          .collection('chats')
+          .where('senderID', isEqualTo: _auth.currentUser!.uid)
+          .where('receiverID', isEqualTo: widget.UserID)
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
+      builder: (context, snapshot1) {
+        if (snapshot1.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-              // Check if snapshot has data and handle empty state
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return Container();
-              }
+        if (!snapshot1.hasData || snapshot1.data!.docs.isEmpty) {
+          return Container();
+        }
 
-              final messages = snapshot.data!.docs;
+        final messages1 = snapshot1.data!.docs;
 
-              return ListView.builder(
-                padding: const EdgeInsets.only(bottom: 80),
-                itemCount: messages.length,
-                reverse: true,
-                itemBuilder: (context, index) {
-                  final message = messages[index];
-                  final isCurrentUser = message['senderID'] == _auth.currentUser!.uid;
+        return StreamBuilder<QuerySnapshot>(
+          stream: _firestore
+              .collection('chats')
+              .where('senderID', isEqualTo: widget.UserID)
+              .where('receiverID', isEqualTo: _auth.currentUser!.uid)
+              .orderBy('timestamp', descending: true)
+              .snapshots(),
+          builder: (context, snapshot2) {
+            if (snapshot2.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                  // Format timestamp
-                  final Timestamp? timestamp = message['timestamp'];
-                  final DateTime dateTime =
-                  timestamp != null ? timestamp.toDate() : DateTime.now();
-                  final formattedTime = DateFormat('hh:mm a').format(dateTime);
+            if (!snapshot2.hasData || snapshot2.data!.docs.isEmpty) {
+              return Container();
+            }
 
-                  final status = message['status']; // Get the message status
-                  final messageType = message['messageType']; // Check the message type
+            final messages2 = snapshot2.data!.docs;
 
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 15),
-                    child: Column(
-                      crossAxisAlignment: isCurrentUser
-                          ? CrossAxisAlignment.end
-                          : CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: isCurrentUser
-                              ? MainAxisAlignment.end
-                              : MainAxisAlignment.start,
-                          children: [
-                            if (!isCurrentUser)
-                              const CircleAvatar(
-                                backgroundImage: NetworkImage(
-                                    'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
-                              ),
-                            const SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: isCurrentUser
-                                  ? CrossAxisAlignment.end
-                                  : CrossAxisAlignment.start,
-                              children: [
-                                // Display either text or image based on message type
-                                if (messageType == 'text')
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: isCurrentUser
-                                          ? Colors.green
-                                          : Colors.blue,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(15.0),
-                                      child: Text(
-                                        message['message'],
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                else if (messageType == 'image')
-                                  InkWell(
-                                    onTap:(){
-                                      // print(message['message']);
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => Image_viewing(UserID: widget.UserID,
-                                          Name: widget.Name,
-                                          Image_Link: message['message']),));
-                                    },
-                                    child: Container(
-                                      width: 250,
-                                      height: 250,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                        color: Colors.grey[300],
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(10),
-                                        child: Image.network(
-                                          message['message'], // Assuming the 'message' field holds the image URL
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
+            // Combine both message lists
+            final combinedMessages = [
+              ...messages1,
+              ...messages2,
+            ];
+
+            // Sort the combined messages based on the timestamp
+            combinedMessages.sort((a, b) => (b['timestamp'] as Timestamp).compareTo(a['timestamp']));
+
+            return ListView.builder(
+              padding: const EdgeInsets.only(bottom: 80),
+              itemCount: combinedMessages.length,
+              reverse: true,
+              itemBuilder: (context, index) {
+                final message = combinedMessages[index];
+                final isCurrentUser = message['senderID'] == _auth.currentUser!.uid;
+
+                final Timestamp? timestamp = message['timestamp'];
+                final DateTime dateTime = timestamp != null ? timestamp.toDate() : DateTime.now();
+                final formattedTime = DateFormat('hh:mm a').format(dateTime);
+
+                final status = message['status'];
+                final messageType = message['messageType'];
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 15),
+                  child: Column(
+                    crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                        children: [
+                          if (!isCurrentUser)
+                            const CircleAvatar(
+                              backgroundImage: NetworkImage('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                            ),
+                          const SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                            children: [
+                              if (messageType == 'text')
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: isCurrentUser ? Colors.green : Colors.blue,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(15.0),
+                                    child: Text(
+                                      message['message'],
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                                     ),
                                   ),
-                                const SizedBox(height: 5),
-                                Row(
-                                  children: [
-                                    Text(
-                                      formattedTime,
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 10,
+                                )
+                              else if (messageType == 'image')
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => Image_viewing(
+                                          UserID: widget.UserID,
+                                          Name: widget.Name,
+                                          Image_Link: message['message'],
+                                        ),
                                       ),
+                                    );
+                                  },
+                                  child: Container(
+                                    width: 250,
+                                    height: 250,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.grey[300],
                                     ),
-                                    const SizedBox(width: 10),
-                                    // Show status icon
-                                    if (isCurrentUser)
-                                      Icon(
-                                        status == 'pending'
-                                            ? CupertinoIcons.clock
-                                            : status == 'sent'
-                                            ? Icons.check
-                                            : Icons.remove_red_eye,
-                                        color: CupertinoColors.white,
-                                        size: 12,
-                                      ),
-                                  ],
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Image.network(message['message'], fit: BoxFit.cover),
+                                    ),
+                                  ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(width: 10),
-                            if (isCurrentUser)
-                              const CircleAvatar(
-                                backgroundImage: NetworkImage(
-                                    'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                              const SizedBox(height: 5),
+                              Row(
+                                children: [
+                                  Text(
+                                    formattedTime,
+                                    style: const TextStyle(color: Colors.grey, fontSize: 10),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  if (isCurrentUser)
+                                    Icon(
+                                      status == 'pending' ? CupertinoIcons.clock : status == 'sent' ? Icons.check : Icons.remove_red_eye,
+                                      color: CupertinoColors.white,
+                                      size: 12,
+                                    ),
+                                ],
                               ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-
-          // Message typing section
+                            ],
+                          ),
+                          const SizedBox(width: 10),
+                          if (isCurrentUser)
+                            const CircleAvatar(
+                              backgroundImage: NetworkImage('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    ),
+    // Message typing section
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -332,4 +338,5 @@ class _ChattingPageState extends State<ChattingPage> {
       ),
     );
   }
+
 }
