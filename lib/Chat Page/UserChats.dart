@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pingstar/Audio%20And%20Video%20Call/VideoCall.dart';
 import 'package:pingstar/Images%20And%20Videos/imagesendingpage.dart';
 import 'package:pingstar/Logged%20In%20Users/allchatspage.dart';
 import 'package:pingstar/Multimedia%20Viewing%20Pages/Image_viewing.dart';
@@ -116,13 +117,20 @@ class _ChattingPageState extends State<ChattingPage> {
             ),
           ],
         ),
-        actions: const [
+        actions:  [
           Row(
             children: [
-              Icon(Icons.call, color: Colors.white),
-              SizedBox(width: 30),
-              Icon(Icons.video_call, color: Colors.white),
-              SizedBox(width: 20),
+              const Icon(Icons.call, color: Colors.white),
+              const SizedBox(width: 30),
+              InkWell(
+                  onTap: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => VideoCallPage(
+                      Name: widget.Name,
+                      UserID: widget.UserID,
+                    ),));
+                  },
+                  child: const Icon(Icons.video_call, color: Colors.white)),
+              const SizedBox(width: 20),
             ],
           ),
         ],

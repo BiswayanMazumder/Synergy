@@ -7,6 +7,10 @@
 	<key>CFBundleDisplayName</key>
 	<string>Pingstar</string>
 	<key>CFBundleExecutable</key>
+	<key>NSCameraUsageDescription</key>
+    <string>$(PRODUCT_NAME) Camera Usage!</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>$(PRODUCT_NAME) Microphone Usage!</string>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>

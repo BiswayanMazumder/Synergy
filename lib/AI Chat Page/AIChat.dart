@@ -90,9 +90,17 @@ class _AIChatPageState extends State<AIChatPage> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Connect AI',
-                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 18),
+                Row(
+                  children: [
+                    Text(
+                      'Connect AI',
+                      style: GoogleFonts.poppins(color: Colors.white, fontSize: 18),
+                    ),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    const Icon(Icons.verified,color: Colors.blue,size: 18,),
+                  ],
                 ),
                 const SizedBox(
                   height: 3,
