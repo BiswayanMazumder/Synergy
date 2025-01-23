@@ -82,7 +82,12 @@ class _ChattingPageState extends State<ChattingPage> {
       _messageController.clear();
     }
   }
-
+  Future<void> writeactivecalls()async{
+    await _firestore.collection('Active Calls').doc(_auth.currentUser!.uid).set(
+        {
+          'User Busy':true
+        });
+  }
   @override
   void initState() {
     // TODO: implement initState
@@ -123,11 +128,9 @@ class _ChattingPageState extends State<ChattingPage> {
               const Icon(Icons.call, color: Colors.white),
               const SizedBox(width: 30),
               InkWell(
-                  onTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => VideoCallPage(
-                      Name: widget.Name,
-                      UserID: widget.UserID,
-                    ),));
+                  onTap: ()async{
+                    await writeactivecalls();
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => VideoCallPage(name: widget.Name, userId: widget.UserID, isInitiator: true)));
                   },
                   child: const Icon(Icons.video_call, color: Colors.white)),
               const SizedBox(width: 20),
