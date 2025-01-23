@@ -1,15 +1,26 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'dart:async';
 
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pingstar/Utils/colors.dart';
 
 class UpdateViewing extends StatefulWidget {
-  final String imageUrl;  // The image URL passed from the previous page
+  final String imageUrl; // The image URL passed from the previous page
   final String Name;
+  final List<String> contactname; // List to store contact names
+  final List<String> contactnumber;
 
-  const UpdateViewing({super.key, required this.imageUrl,required this.Name});
+  const UpdateViewing(
+      {super.key,
+        required this.imageUrl,
+        required this.Name,
+        required this.contactnumber,
+        required this.contactname});
 
   @override
   State<UpdateViewing> createState() => _UpdateViewingState();
@@ -27,6 +38,7 @@ class _UpdateViewingState extends State<UpdateViewing> {
   @override
   void initState() {
     super.initState();
+    _listentostoryviewers();
     _stories = [widget.imageUrl]; // Initialize the list with the passed image URL
     _startTimer();
   }
@@ -55,7 +67,7 @@ class _UpdateViewingState extends State<UpdateViewing> {
       );
     } else {
       // No more stories left, end and pop the view
-      _timer.cancel();  // Cancel the timer to stop further updates
+      _timer.cancel(); // Cancel the timer to stop further updates
       Navigator.pop(context); // Go back to the previous page
     }
   }
@@ -70,6 +82,76 @@ class _UpdateViewingState extends State<UpdateViewing> {
     }
   }
 
+  List<dynamic> StorySeenUIDS = [];
+  List<dynamic> ContactNumbers = [];
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Listen for story viewers and fetch contact details
+  Future<void> _listentostoryviewers() async {
+    _firestore
+        .collection('Users Status')
+        .doc(_auth.currentUser!.uid)
+        .snapshots()
+        .listen((docsnap) {
+      if (docsnap.exists) {
+        setState(() {
+          // Update StorySeenUIDS whenever the document changes
+          StorySeenUIDS = List<String>.from(docsnap.data()?['Story Seen By'] ?? []);
+        });
+        // Fetch contact details after StorySeenUIDS is updated
+        _fetchContactDetails();
+      }
+    });
+  }
+  List<String> StoryViewerUsername=[];
+  // Fetch the contact details for all users who viewed the story
+  Future<void> _fetchContactDetails() async {
+    // Ensure that StorySeenUIDS is populated
+    if (StorySeenUIDS.isEmpty) return;
+
+    // Clear existing contact numbers when updating
+    ContactNumbers.clear();
+    List<String> tempContactNumbers = [];
+
+    // Iterate over StorySeenUIDS and fetch contact details
+    for (String userUID in StorySeenUIDS) {
+      try {
+        var docsnap = await _firestore.collection('User Details(User ID Basis)').doc(userUID).get();
+
+        if (docsnap.exists) {
+          var mobileNumber = docsnap.data()?['Mobile Number'];
+
+          if (mobileNumber != null) {
+            tempContactNumbers.add(mobileNumber);
+          }
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error fetching user details for UID $userUID: $e");
+        }
+      }
+    }
+
+    // Update the ContactNumbers list with fetched numbers
+    setState(() {
+      ContactNumbers.addAll(tempContactNumbers);
+    });
+
+    // Log the contact numbers for debugging
+    if (kDebugMode) {
+      print('Updated Contact Numbers: $tempContactNumbers');
+    }
+    for(int i=0;i<tempContactNumbers.length;i++){
+      if (kDebugMode) {
+        print('Found at ${widget.contactnumber.indexOf(tempContactNumbers[i])}');
+      }
+      StoryViewerUsername.add(widget.contactname[widget.contactnumber.indexOf(tempContactNumbers[i])]);
+      if (kDebugMode) {
+        print('Story Username $StoryViewerUsername');
+      }
+    }
+    }
   @override
   void dispose() {
     _timer.cancel();
@@ -110,7 +192,8 @@ class _UpdateViewingState extends State<UpdateViewing> {
                           // Profile image
                           const CircleAvatar(
                             radius: 20,
-                            backgroundImage: NetworkImage('https://g1uudlawy6t63z36.public.blob.vercel-storage.com/e64edd025438449584ac6c481eafa22d.png'), // Display the passed network image
+                            backgroundImage: NetworkImage(
+                                'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'), // Display the passed network image
                           ),
                           const SizedBox(width: 20),
                           Text(
@@ -139,47 +222,81 @@ class _UpdateViewingState extends State<UpdateViewing> {
             ),
           ),
           InkWell(
-              onTap: (){
-                showModalBottomSheet(context: context,
-                    showDragHandle: false,
-                    builder: (context) {
-                      return Container(
-                        height: MediaQuery.sizeOf(context).height/1.5,
-                        width: MediaQuery.sizeOf(context).width/1.1,
-                        decoration:const BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(10))
-                        ),
-                        child: Column(
-                          children: [
-                            Container(
-                              // height:150,
-                              width: MediaQuery.sizeOf(context).width,
-                              color: WhatsAppColors.darkGreen,
-                              child: Padding(
-                                padding: const EdgeInsets.all(30.0),
-                                child: Center(
-                                  child: Text(' Viewed by 11',style: GoogleFonts.poppins(
-                                      color: Colors.white,fontSize: 18,fontWeight: FontWeight.w500
-                                  ),),
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  showDragHandle: false,
+                  builder: (context) {
+                    return Container(
+                      height: MediaQuery.sizeOf(context).height / 1.5,
+                      width: MediaQuery.sizeOf(context).width / 1.1,
+                      decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: MediaQuery.sizeOf(context).width,
+                            color: WhatsAppColors.darkGreen,
+                            child: Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Center(
+                                child: Text(
+                                  ' Viewed by ${StorySeenUIDS.length}',
+                                  style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500),
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      );
-                    },);
+                          ),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          for(int i=0;i<StoryViewerUsername.length;i++)
+                            SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      const SizedBox(
+                                        width: 20,
+                                      ),
+                                      const CircleAvatar(
+                                        backgroundImage: NetworkImage('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                                      ),
+                                      const SizedBox(
+                                        width: 20,
+                                      ),
+                                      Text(StoryViewerUsername[i],style: GoogleFonts.poppins(
+                                          color: Colors.black,fontWeight: FontWeight.w500
+                                      ),)
+                                    ],
+                                  )
+                                ],
+                              ),
+                            )
+                        ],
+                      ),
+                    );
+                  },
+                );
               },
-              child:Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Icon(CupertinoIcons.eye_solid,color: Colors.white,),
+                  const Icon(
+                    CupertinoIcons.eye_solid,
+                    color: Colors.white,
+                  ),
                   const SizedBox(
                     width: 10,
                   ),
-                  Text('11',style: GoogleFonts.poppins(
-                    color: Colors.white
-                  ),)
+                  Text(
+                    StorySeenUIDS.length.toString(),
+                    style: GoogleFonts.poppins(color: Colors.white),
+                  )
                 ],
               )),
           const SizedBox(
@@ -191,7 +308,6 @@ class _UpdateViewingState extends State<UpdateViewing> {
   }
 
   // Build indicators for the stories (like dots below each story)
-
   Widget _buildStoryIndicators() {
     return Padding(
       padding: const EdgeInsets.all(8.0),

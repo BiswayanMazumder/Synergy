@@ -2,7 +2,9 @@ import 'package:blur/blur.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pingstar/Multimedia%20Viewing%20Pages/updateviewingpage.dart';
@@ -44,12 +46,56 @@ class _UpdatesPageState extends State<UpdatesPage> {
       }
     });
   }
+  List<String> contactname = []; // List to store contact names
+  List<String> contactnumber = []; // List to store contact numbers
+  List<String> ContactNumber = [];
+  String normalizePhoneNumber(String number) {
+    String normalized = number.replaceAll(RegExp(r'\s+|-|\(|\)|\+'), '');
+    if (normalized.startsWith('91') && normalized.length > 10) {
+      normalized = normalized.substring(2);
+    }
+    return normalized;
+  }
+  Future<void> getContacts() async {
+    try {
+      if (await FlutterContacts.requestPermission()) {
+        List<Contact> contacts =
+        await FlutterContacts.getContacts(withProperties: true);
 
+        List<String> names = [];
+        List<String> numbers = [];
+
+        for (var contact in contacts) {
+          String name = contact.displayName ?? 'Unnamed Contact';
+          String phoneNumber = contact.phones.isNotEmpty
+              ? contact.phones.first.number ?? 'No phone number'
+              : 'No phone number';
+
+          names.add(name);
+          numbers.add(normalizePhoneNumber(phoneNumber));
+        }
+
+        setState(() {
+          contactname = names;
+          contactnumber = numbers;
+        });
+      }
+      if (kDebugMode) {
+        print(contactnumber);
+      }
+      if (kDebugMode) {
+        print(contactname);
+      }
+    } catch (e) {
+      if (kDebugMode) print('Failed to fetch contacts: $e');
+    }
+  }
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _listenToStatus();
+    getContacts();
   }
   @override
   Widget build(BuildContext context) {
@@ -124,7 +170,9 @@ class _UpdatesPageState extends State<UpdatesPage> {
                             _pickImage();
                           }
                           if(ImageUrl!=''){
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => UpdateViewing(imageUrl: ImageUrl,Name: 'My Status'),));
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => UpdateViewing(imageUrl: ImageUrl,Name: 'My Status',
+                            contactname: contactname,contactnumber: contactnumber,
+                            ),));
                           }
                           },
                           child: Container(
@@ -160,7 +208,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
                                 padding: EdgeInsets.all(4.0),
                                 child: CircleAvatar(
                                   backgroundImage: NetworkImage(
-                                      'https://g1uudlawy6t63z36.public.blob.vercel-storage.com/e64edd025438449584ac6c481eafa22d.png'),
+                                      'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
                                   radius: 10,
                                   backgroundColor: Colors.white,
                                 ),
