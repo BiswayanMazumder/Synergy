@@ -49,6 +49,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
   List<String> contactname = []; // List to store contact names
   List<String> contactnumber = []; // List to store contact numbers
   List<String> ContactNumber = [];
+
   String normalizePhoneNumber(String number) {
     String normalized = number.replaceAll(RegExp(r'\s+|-|\(|\)|\+'), '');
     if (normalized.startsWith('91') && normalized.length > 10) {

@@ -7,6 +7,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'dart:async';
 
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pingstar/Chat%20Page/UserChats.dart';
 import 'package:pingstar/Utils/colors.dart';
 
 class UpdateViewing extends StatefulWidget {
@@ -105,6 +106,7 @@ class _UpdateViewingState extends State<UpdateViewing> {
     });
   }
   List<String> StoryViewerUsername=[];
+  List<String> StoryViewerUserID=[];
   // Fetch the contact details for all users who viewed the story
   Future<void> _fetchContactDetails() async {
     // Ensure that StorySeenUIDS is populated
@@ -113,7 +115,7 @@ class _UpdateViewingState extends State<UpdateViewing> {
     // Clear existing contact numbers when updating
     ContactNumbers.clear();
     List<String> tempContactNumbers = [];
-
+    List<String> tempUserIDs = [];
     // Iterate over StorySeenUIDS and fetch contact details
     for (String userUID in StorySeenUIDS) {
       try {
@@ -121,8 +123,10 @@ class _UpdateViewingState extends State<UpdateViewing> {
 
         if (docsnap.exists) {
           var mobileNumber = docsnap.data()?['Mobile Number'];
+          var UserIDS=docsnap.data()?['UID'];
 
           if (mobileNumber != null) {
+            tempUserIDs.add(UserIDS);
             tempContactNumbers.add(mobileNumber);
           }
         }
@@ -135,12 +139,13 @@ class _UpdateViewingState extends State<UpdateViewing> {
 
     // Update the ContactNumbers list with fetched numbers
     setState(() {
+      StoryViewerUserID.addAll(tempUserIDs);
       ContactNumbers.addAll(tempContactNumbers);
     });
 
     // Log the contact numbers for debugging
     if (kDebugMode) {
-      print('Updated Contact Numbers: $tempContactNumbers');
+      print('Updated Contact Numbers: $tempUserIDs');
     }
     for(int i=0;i<tempContactNumbers.length;i++){
       if (kDebugMode) {
@@ -257,21 +262,27 @@ class _UpdateViewingState extends State<UpdateViewing> {
                             SingleChildScrollView(
                               child: Column(
                                 children: [
-                                  Row(
-                                    children: [
-                                      const SizedBox(
-                                        width: 20,
-                                      ),
-                                      const CircleAvatar(
-                                        backgroundImage: NetworkImage('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
-                                      ),
-                                      const SizedBox(
-                                        width: 20,
-                                      ),
-                                      Text(StoryViewerUsername[i],style: GoogleFonts.poppins(
-                                          color: Colors.black,fontWeight: FontWeight.w500
-                                      ),)
-                                    ],
+                                  InkWell(
+                                    onTap: (){
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) =>ChattingPage(UserID: StoryViewerUserID[i],
+                                          Name: StoryViewerUsername[i]),));
+                                    },
+                                    child: Row(
+                                      children: [
+                                        const SizedBox(
+                                          width: 20,
+                                        ),
+                                        const CircleAvatar(
+                                          backgroundImage: NetworkImage('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                                        ),
+                                        const SizedBox(
+                                          width: 20,
+                                        ),
+                                        Text(StoryViewerUsername[i],style: GoogleFonts.poppins(
+                                            color: Colors.black,fontWeight: FontWeight.w500
+                                        ),)
+                                      ],
+                                    ),
                                   )
                                 ],
                               ),
