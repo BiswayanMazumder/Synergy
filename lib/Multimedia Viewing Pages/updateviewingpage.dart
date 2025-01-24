@@ -20,12 +20,12 @@ class UpdateViewing extends StatefulWidget {
 
   const UpdateViewing(
       {super.key,
-        required this.imageUrl,
-        required this.Name,
-        required this.storyowneruid,
-        required this.isowner,
-        required this.contactnumber,
-        required this.contactname});
+      required this.imageUrl,
+      required this.Name,
+      required this.storyowneruid,
+      required this.isowner,
+      required this.contactnumber,
+      required this.contactname});
 
   @override
   State<UpdateViewing> createState() => _UpdateViewingState();
@@ -39,29 +39,34 @@ class _UpdateViewingState extends State<UpdateViewing> {
 
   // List of story images (we initialize this in initState)
   late List<String> _stories;
-  Future<void> updatestoryviewers()async{
+  Future<void> updatestoryviewers() async {
     if (kDebugMode) {
       print('Owner ${widget.storyowneruid}');
     }
-    try{
-      await _firestore.collection('Users Status').doc(widget.storyowneruid).update(
-          {
-            'Story Seen By':FieldValue.arrayUnion([_auth.currentUser!.uid]),
-          });
-    }catch(e){
+    try {
+      await _firestore
+          .collection('Users Status')
+          .doc(widget.storyowneruid)
+          .update({
+        'Story Seen By': FieldValue.arrayUnion([_auth.currentUser!.uid]),
+      });
+    } catch (e) {
       if (kDebugMode) {
         print(e);
       }
     }
   }
+
   @override
   void initState() {
     super.initState();
     _listentostoryviewers();
-      if(widget.isowner==false){
-        updatestoryviewers();
-      }
-    _stories = [widget.imageUrl]; // Initialize the list with the passed image URL
+    if (widget.isowner == false) {
+      updatestoryviewers();
+    }
+    _stories = [
+      widget.imageUrl
+    ]; // Initialize the list with the passed image URL
     _startTimer();
   }
 
@@ -119,15 +124,17 @@ class _UpdateViewingState extends State<UpdateViewing> {
       if (docsnap.exists) {
         setState(() {
           // Update StorySeenUIDS whenever the document changes
-          StorySeenUIDS = List<String>.from(docsnap.data()?['Story Seen By'] ?? []);
+          StorySeenUIDS =
+              List<String>.from(docsnap.data()?['Story Seen By'] ?? []);
         });
         // Fetch contact details after StorySeenUIDS is updated
         _fetchContactDetails();
       }
     });
   }
-  List<String> StoryViewerUsername=[];
-  List<String> StoryViewerUserID=[];
+
+  List<String> StoryViewerUsername = [];
+  List<String> StoryViewerUserID = [];
   // Fetch the contact details for all users who viewed the story
   Future<void> _fetchContactDetails() async {
     // Ensure that StorySeenUIDS is populated
@@ -140,11 +147,14 @@ class _UpdateViewingState extends State<UpdateViewing> {
     // Iterate over StorySeenUIDS and fetch contact details
     for (String userUID in StorySeenUIDS) {
       try {
-        var docsnap = await _firestore.collection('User Details(User ID Basis)').doc(userUID).get();
+        var docsnap = await _firestore
+            .collection('User Details(User ID Basis)')
+            .doc(userUID)
+            .get();
 
         if (docsnap.exists) {
           var mobileNumber = docsnap.data()?['Mobile Number'];
-          var UserIDS=docsnap.data()?['UID'];
+          var UserIDS = docsnap.data()?['UID'];
 
           if (mobileNumber != null) {
             tempUserIDs.add(UserIDS);
@@ -168,16 +178,19 @@ class _UpdateViewingState extends State<UpdateViewing> {
     if (kDebugMode) {
       print('Updated Contact Numbers: $tempUserIDs');
     }
-    for(int i=0;i<tempContactNumbers.length;i++){
+    for (int i = 0; i < tempContactNumbers.length; i++) {
       if (kDebugMode) {
-        print('Found at ${widget.contactnumber.indexOf(tempContactNumbers[i])}');
+        print(
+            'Found at ${widget.contactnumber.indexOf(tempContactNumbers[i])}');
       }
-      StoryViewerUsername.add(widget.contactname[widget.contactnumber.indexOf(tempContactNumbers[i])]);
+      StoryViewerUsername.add(widget
+          .contactname[widget.contactnumber.indexOf(tempContactNumbers[i])]);
       if (kDebugMode) {
         print('Story Username $StoryViewerUsername');
       }
     }
-    }
+  }
+
   @override
   void dispose() {
     _timer.cancel();
@@ -222,11 +235,23 @@ class _UpdateViewingState extends State<UpdateViewing> {
                                 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'), // Display the passed network image
                           ),
                           const SizedBox(width: 20),
-                          Text(
-                            widget.Name, // You can replace this with dynamic data
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                          InkWell(
+                            onTap: () {
+                              Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChattingPage(
+                                        UserID: widget.storyowneruid,
+                                        Name: widget.Name),
+                                  ));
+                            },
+                            child: Text(
+                              widget
+                                  .Name, // You can replace this with dynamic data
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
@@ -247,90 +272,109 @@ class _UpdateViewingState extends State<UpdateViewing> {
               },
             ),
           ),
-         widget.isowner? InkWell(
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  showDragHandle: false,
-                  builder: (context) {
-                    return Container(
-                      height: MediaQuery.sizeOf(context).height / 1.5,
-                      width: MediaQuery.sizeOf(context).width / 1.1,
-                      decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(10))),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: MediaQuery.sizeOf(context).width,
-                            color: WhatsAppColors.darkGreen,
-                            child: Padding(
-                              padding: const EdgeInsets.all(20.0),
-                              child: Center(
-                                child: Text(
-                                  ' Viewed by ${StorySeenUIDS.length}',
-                                  style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500),
+          widget.isowner
+              ? InkWell(
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      showDragHandle: false,
+                      builder: (context) {
+                        return Container(
+                          height: MediaQuery.sizeOf(context).height / 1.5,
+                          width: MediaQuery.sizeOf(context).width / 1.1,
+                          decoration: const BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10))),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: MediaQuery.sizeOf(context).width,
+                                color: WhatsAppColors.darkGreen,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: Center(
+                                    child: Text(
+                                      ' Viewed by ${StorySeenUIDS.length}',
+                                      style: GoogleFonts.poppins(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          for(int i=0;i<StoryViewerUsername.length;i++)
-                            SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  InkWell(
-                                    onTap: (){
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) =>ChattingPage(UserID: StoryViewerUserID[i],
-                                          Name: StoryViewerUsername[i]),));
-                                    },
-                                    child: Row(
-                                      children: [
-                                        const SizedBox(
-                                          width: 20,
-                                        ),
-                                        const CircleAvatar(
-                                          backgroundImage: NetworkImage('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
-                                        ),
-                                        const SizedBox(
-                                          width: 20,
-                                        ),
-                                        Text(StoryViewerUsername[i],style: GoogleFonts.poppins(
-                                            color: Colors.black,fontWeight: FontWeight.w500
-                                        ),)
-                                      ],
-                                    ),
-                                  )
-                                ],
+                              const SizedBox(
+                                height: 20,
                               ),
-                            )
-                        ],
-                      ),
+                              for (int i = 0;
+                                  i < StoryViewerUsername.length;
+                                  i++)
+                                SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ChattingPage(
+                                                        UserID:
+                                                            StoryViewerUserID[
+                                                                i],
+                                                        Name:
+                                                            StoryViewerUsername[
+                                                                i]),
+                                              ));
+                                        },
+                                        child: Row(
+                                          children: [
+                                            const SizedBox(
+                                              width: 20,
+                                            ),
+                                            const CircleAvatar(
+                                              backgroundImage: NetworkImage(
+                                                  'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                                            ),
+                                            const SizedBox(
+                                              width: 20,
+                                            ),
+                                            Text(
+                                              StoryViewerUsername[i],
+                                              style: GoogleFonts.poppins(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.w500),
+                                            )
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                )
+                            ],
+                          ),
+                        );
+                      },
                     );
                   },
-                );
-              },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Icon(
-                    CupertinoIcons.eye_solid,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  Text(
-                    StorySeenUIDS.length.toString(),
-                    style: GoogleFonts.poppins(color: Colors.white),
-                  )
-                ],
-              )):Container(),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        CupertinoIcons.eye_solid,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        StorySeenUIDS.length.toString(),
+                        style: GoogleFonts.poppins(color: Colors.white),
+                      )
+                    ],
+                  ))
+              : Container(),
           const SizedBox(
             height: 20,
           )
@@ -347,7 +391,7 @@ class _UpdateViewingState extends State<UpdateViewing> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(
           _stories.length,
-              (index) => Padding(
+          (index) => Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: CircleAvatar(
               radius: 5,
