@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pingstar/AI%20Chat%20Page/AIChat.dart';
+import 'package:pingstar/Accounts/accounts_details.dart';
 import 'package:pingstar/Chat%20Page/UserChats.dart';
 import 'package:pingstar/Contact%20Page/AllContacts.dart';
 import 'package:pingstar/Utils/colors.dart';
@@ -313,8 +314,10 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
               ),
               const SizedBox(width: 10),
               InkWell(
-                onTap: () {},
-                child: const Icon(CupertinoIcons.ellipsis_vertical, color: Colors.white),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Accounts_Page(),));
+                },
+                child: const Icon(CupertinoIcons.person, color: Colors.white),
               ),
               const SizedBox(width: 10),
             ],

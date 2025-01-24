@@ -112,7 +112,6 @@ class _UpdatesPageState extends State<UpdatesPage> {
       _isloading=true;
     });
     await getContacts();
-
     for (int i = 0; i < contactnumber.length; i++) {
       final docsnap = await _firestore
           .collection('User Details(Contact Number Basis)')
@@ -120,6 +119,11 @@ class _UpdatesPageState extends State<UpdatesPage> {
           .get();
       if (docsnap.exists) {
         ContactsUIDS.add(docsnap.data()?['UID']);
+      }
+      else{
+        setState(() {
+          _isloading=false;
+        });
       }
     }
     if (kDebugMode) {

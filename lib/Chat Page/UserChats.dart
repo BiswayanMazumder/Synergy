@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pingstar/Audio%20And%20Video%20Call/VideoCall.dart';
 import 'package:pingstar/Utils/colors.dart';
 import 'package:pingstar/Utils/environment_files.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -173,6 +174,12 @@ class _ChattingPageState extends State<ChattingPage> {
     return Scaffold(
       backgroundColor: WhatsAppColors.darkGreen,
       appBar: AppBar(
+        leading: InkWell(
+          onTap: (){
+            Navigator.pop(context);
+          },
+          child: const Icon(Icons.arrow_back,color: Colors.white,),
+        ),
         title: Row(
           children: [
             const CircleAvatar(
@@ -201,7 +208,8 @@ class _ChattingPageState extends State<ChattingPage> {
               const SizedBox(width: 30),
               InkWell(
                 onTap: () {
-                  // Handle video call
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => VideoCallPage(name: widget.Name,
+                      userId: widget.UserID, isInitiator: true),));
                 },
                 child: const Icon(Icons.video_call, color: Colors.white),
               ),
