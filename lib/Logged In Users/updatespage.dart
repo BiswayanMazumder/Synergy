@@ -91,6 +91,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
       if (kDebugMode) print('Failed to fetch contacts: $e');
     }
   }
+
   @override
   void initState() {
     // TODO: implement initState

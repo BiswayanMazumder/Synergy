@@ -216,11 +216,22 @@ class _VideoCallPageState extends State<VideoCallPage> {
 
   Future<void> _endCall() async {
     _stopAudio();
+
+    // Stop the local video track (camera)
+    final mediaStream = _localRenderer.srcObject;
+    mediaStream?.getTracks().forEach((track) {
+      if (track.kind == 'video') {
+        track.stop(); // Stop the video track
+      }
+    });
+
+    // Close the peer connection
     await _firestore
         .collection('Active Calls')
         .doc(_auth.currentUser!.uid)
         .set({'User Busy': false});
     await _firestore.collection('rooms').doc(_auth.currentUser!.uid).delete();
+
     final candidatesRef = _firestore
         .collection('rooms')
         .doc(_auth.currentUser!.uid)
@@ -229,8 +240,15 @@ class _VideoCallPageState extends State<VideoCallPage> {
     for (final doc in candidatesSnapshot.docs) {
       await doc.reference.delete();
     }
+
+    // Release the resources and dispose of the renderer
+    await _localRenderer.dispose();
+    await _remoteRenderer.dispose();
+    await _peerConnection.close();
+
     Navigator.pop(context);
   }
+
 
   @override
   void dispose() {
@@ -238,6 +256,7 @@ class _VideoCallPageState extends State<VideoCallPage> {
     _remoteRenderer.dispose();
     _peerConnection.close();
     _audioPlayer.dispose();
+
     super.dispose();
   }
 
