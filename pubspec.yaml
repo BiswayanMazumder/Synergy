@@ -58,6 +58,10 @@ dependencies:
   camera: ^0.10.5+9
   firebase_messaging: ^14.7.19
   audioplayers: ^5.2.1
+  google_maps_flutter: ^2.5.3
+  geocoding: ^3.0.0
+  geolocator: ^7.0.3
+  url_launcher: ^6.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

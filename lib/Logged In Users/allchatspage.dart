@@ -5,11 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:pingstar/AI%20Chat%20Page/AIChat.dart';
 import 'package:pingstar/Chat%20Page/UserChats.dart';
 import 'package:pingstar/Contact%20Page/AllContacts.dart';
 import 'package:pingstar/Utils/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import '../Status Pages/upload_status.dart';
 
 class AllChats extends StatefulWidget {
   const AllChats({super.key});
@@ -87,7 +90,20 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
       if (kDebugMode) print(e);
     }
   }
-
+  String ImageUrl = '';
+  void _listenToStatus() {
+    _firestore
+        .collection('Users Status')
+        .doc(_auth.currentUser!.uid)
+        .snapshots()
+        .listen((docsnap) {
+      if (docsnap.exists) {
+        setState(() {
+          ImageUrl = docsnap.data()?['Image URL'];
+        });
+      }
+    });
+  }
   // Optimized contact fetching method using flutter_contacts
   Future<void> getContacts() async {
     try {
@@ -208,6 +224,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _listenToStatus();
     _searchController.addListener(_onSearchChanged);
     getContacts();
     getrecentchats();
@@ -236,7 +253,22 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
   }
 
   bool longpressed = false;
+  File? _image;
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => StatusUploading(
+                  image: _image, otherUID: _auth.currentUser!.uid)));
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final filteredIndexes = _getFilteredIndexes();
@@ -272,7 +304,11 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
           ) : Row(
             children: [
               InkWell(
-                onTap: () {},
+                onTap: () {
+                  if(ImageUrl==''){
+                    _pickImage();
+                  }
+                },
                 child: const Icon(Icons.camera_alt_outlined, color: Colors.white),
               ),
               const SizedBox(width: 10),

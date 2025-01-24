@@ -11,6 +11,10 @@
     <string>$(PRODUCT_NAME) Camera Usage!</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>$(PRODUCT_NAME) Microphone Usage!</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>We need your location to send live location</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>We need your location to send live location</string>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>

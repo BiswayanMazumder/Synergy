@@ -12,6 +12,8 @@ import 'package:pingstar/Status%20Pages/upload_status.dart';
 import 'package:pingstar/Utils/colors.dart';
 import 'dart:io';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class UpdatesPage extends StatefulWidget {
   const UpdatesPage({super.key});
 
@@ -160,7 +162,11 @@ class _UpdatesPageState extends State<UpdatesPage> {
           Row(
             children: [
               InkWell(
-                onTap: () {},
+                onTap: () {
+                  if(ImageUrl==''){
+                    _pickImage();
+                  }
+                },
                 child: const Icon(
                   Icons.camera_alt_outlined,
                   color: Colors.white,
@@ -314,7 +320,8 @@ class _UpdatesPageState extends State<UpdatesPage> {
                           Stack(
                             children: [
                               InkWell(
-                                onTap: () {
+                                onTap: () async{
+                                  // final prefs=await SharedPreferences.getInstance();
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(
