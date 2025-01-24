@@ -13,6 +13,8 @@ import 'package:pingstar/Utils/colors.dart';
 class UpdateViewing extends StatefulWidget {
   final String imageUrl; // The image URL passed from the previous page
   final String Name;
+  final bool isowner;
+  final String storyowneruid;
   final List<String> contactname; // List to store contact names
   final List<String> contactnumber;
 
@@ -20,6 +22,8 @@ class UpdateViewing extends StatefulWidget {
       {super.key,
         required this.imageUrl,
         required this.Name,
+        required this.storyowneruid,
+        required this.isowner,
         required this.contactnumber,
         required this.contactname});
 
@@ -35,11 +39,28 @@ class _UpdateViewingState extends State<UpdateViewing> {
 
   // List of story images (we initialize this in initState)
   late List<String> _stories;
-
+  Future<void> updatestoryviewers()async{
+    if (kDebugMode) {
+      print('Owner ${widget.storyowneruid}');
+    }
+    try{
+      await _firestore.collection('Users Status').doc(widget.storyowneruid).update(
+          {
+            'Story Seen By':FieldValue.arrayUnion([_auth.currentUser!.uid]),
+          });
+    }catch(e){
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+  }
   @override
   void initState() {
     super.initState();
     _listentostoryviewers();
+      if(widget.isowner==false){
+        updatestoryviewers();
+      }
     _stories = [widget.imageUrl]; // Initialize the list with the passed image URL
     _startTimer();
   }
@@ -226,7 +247,7 @@ class _UpdateViewingState extends State<UpdateViewing> {
               },
             ),
           ),
-          InkWell(
+         widget.isowner? InkWell(
               onTap: () {
                 showModalBottomSheet(
                   context: context,
@@ -309,7 +330,7 @@ class _UpdateViewingState extends State<UpdateViewing> {
                     style: GoogleFonts.poppins(color: Colors.white),
                   )
                 ],
-              )),
+              )):Container(),
           const SizedBox(
             height: 20,
           )

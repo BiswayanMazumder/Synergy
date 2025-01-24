@@ -11,6 +11,7 @@ import 'package:pingstar/Multimedia%20Viewing%20Pages/updateviewingpage.dart';
 import 'package:pingstar/Status%20Pages/upload_status.dart';
 import 'package:pingstar/Utils/colors.dart';
 import 'dart:io';
+
 class UpdatesPage extends StatefulWidget {
   const UpdatesPage({super.key});
 
@@ -21,7 +22,7 @@ class UpdatesPage extends StatefulWidget {
 class _UpdatesPageState extends State<UpdatesPage> {
   bool statusseen = false;
   File? _image;
-  final FirebaseAuth _auth=FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -30,13 +31,20 @@ class _UpdatesPageState extends State<UpdatesPage> {
       setState(() {
         _image = File(pickedFile.path);
       });
-      Navigator.push(context, MaterialPageRoute(builder: (context) => StatusUploading(image: _image, otherUID:_auth.currentUser!.uid)));
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => StatusUploading(
+                  image: _image, otherUID: _auth.currentUser!.uid)));
     }
   }
-  final FirebaseFirestore _firestore=FirebaseFirestore.instance;
-  String ImageUrl='';
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  String ImageUrl = '';
   void _listenToStatus() {
-    _firestore.collection('Users Status').doc(_auth.currentUser!.uid)
+    _firestore
+        .collection('Users Status')
+        .doc(_auth.currentUser!.uid)
         .snapshots()
         .listen((docsnap) {
       if (docsnap.exists) {
@@ -46,6 +54,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
       }
     });
   }
+
   List<String> contactname = []; // List to store contact names
   List<String> contactnumber = []; // List to store contact numbers
   List<String> ContactNumber = [];
@@ -57,11 +66,12 @@ class _UpdatesPageState extends State<UpdatesPage> {
     }
     return normalized;
   }
+
   Future<void> getContacts() async {
     try {
       if (await FlutterContacts.requestPermission()) {
         List<Contact> contacts =
-        await FlutterContacts.getContacts(withProperties: true);
+            await FlutterContacts.getContacts(withProperties: true);
 
         List<String> names = [];
         List<String> numbers = [];
@@ -92,13 +102,53 @@ class _UpdatesPageState extends State<UpdatesPage> {
     }
   }
 
+  List<dynamic> statusimageURL = [];
+  bool _isloading=true;
+  List<String> ContactsUIDS = [];
+  Future<void> fetchcontactstatus() async {
+    setState(() {
+      _isloading=true;
+    });
+    await getContacts();
+
+    for (int i = 0; i < contactnumber.length; i++) {
+      final docsnap = await _firestore
+          .collection('User Details(Contact Number Basis)')
+          .doc(contactnumber[i])
+          .get();
+      if (docsnap.exists) {
+        ContactsUIDS.add(docsnap.data()?['UID']);
+      }
+    }
+    if (kDebugMode) {
+      print("UIDS $ContactsUIDS");
+    }
+    for (int k = 0; k < ContactsUIDS.length; k++) {
+      final StatusSnap = await _firestore
+          .collection('Users Status')
+          .doc(ContactsUIDS[k])
+          .get();
+      if (StatusSnap.exists) {
+        statusimageURL.add(StatusSnap.data()?['Image URL']);
+      }
+    }
+    if (kDebugMode) {
+      print('Status $statusimageURL');
+    }
+    setState(() {
+      _isloading=false;
+    });
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _listenToStatus();
-    getContacts();
+    fetchcontactstatus();
+    // getContacts();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,7 +189,11 @@ class _UpdatesPageState extends State<UpdatesPage> {
         ),
       ),
       body: SingleChildScrollView(
-        child: Padding(
+        child:_isloading?const Column(
+          children: [
+             Center(child: CircularProgressIndicator(color: WhatsAppColors.primaryGreen,)),
+          ],
+        ): Padding(
           padding: const EdgeInsets.only(left: 20, right: 20),
           child: Column(
             children: [
@@ -168,14 +222,23 @@ class _UpdatesPageState extends State<UpdatesPage> {
                       children: [
                         InkWell(
                           onTap: () {
-                          if(ImageUrl==''){
-                            _pickImage();
-                          }
-                          if(ImageUrl!=''){
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => UpdateViewing(imageUrl: ImageUrl,Name: 'My Status',
-                            contactname: contactname,contactnumber: contactnumber,
-                            ),));
-                          }
+                            if (ImageUrl == '') {
+                              _pickImage();
+                            }
+                            if (ImageUrl != '') {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => UpdateViewing(
+                                      imageUrl: ImageUrl,
+                                      Name: 'My Status',
+                                      isowner: true,
+                                      storyowneruid: _auth.currentUser!.uid,
+                                      contactname: contactname,
+                                      contactnumber: contactnumber,
+                                    ),
+                                  ));
+                            }
                           },
                           child: Container(
                             height: 250,
@@ -184,16 +247,19 @@ class _UpdatesPageState extends State<UpdatesPage> {
                                 color: Colors.grey.shade500.withOpacity(0.5),
                                 borderRadius: const BorderRadius.all(
                                     Radius.circular(10))),
-                            child: ImageUrl==''?Container():Container(
-                              height: 250,
-                              width: 180,
-                              decoration: const BoxDecoration(
-                                  borderRadius: BorderRadius.all(
-                                      Radius.circular(10))
-                              ),
-                              child: Image(image: NetworkImage(ImageUrl),fit: BoxFit.contain,),
-                            ),
-
+                            child: ImageUrl == ''
+                                ? Container()
+                                : Container(
+                                    height: 250,
+                                    width: 180,
+                                    decoration: const BoxDecoration(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10))),
+                                    child: Image(
+                                      image: NetworkImage(ImageUrl),
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
                           ),
                         ),
                         Positioned(
@@ -202,8 +268,8 @@ class _UpdatesPageState extends State<UpdatesPage> {
                             child: Container(
                               height: 50,
                               width: 50,
-                              decoration:  BoxDecoration(
-                                color:statusseen?Colors.grey: Colors.green,
+                              decoration: BoxDecoration(
+                                color: statusseen ? Colors.grey : Colors.green,
                                 shape: BoxShape.circle,
                               ),
                               child: const Padding(
@@ -215,15 +281,18 @@ class _UpdatesPageState extends State<UpdatesPage> {
                                   backgroundColor: Colors.white,
                                 ),
                               ),
-                            )
-                        ),
+                            )),
                         const Positioned(
                             left: 40,
                             top: 40,
                             child: CircleAvatar(
                               backgroundColor: WhatsAppColors.primaryGreen,
                               radius: 10,
-                              child: Icon(Icons.add,color: Colors.black,size:15,),
+                              child: Icon(
+                                Icons.add,
+                                color: Colors.black,
+                                size: 15,
+                              ),
                             )),
                         Positioned(
                             bottom: 10,
@@ -233,12 +302,88 @@ class _UpdatesPageState extends State<UpdatesPage> {
                               style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600),
-                            ))
+                            )),
                       ],
                     ),
                     const SizedBox(
                       width: 20,
                     ),
+                    for (int i = 0; i < statusimageURL.length; i++)
+                      Row(
+                        children: [
+                          Stack(
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => UpdateViewing(
+                                          imageUrl: statusimageURL[i],
+                                          storyowneruid: ContactsUIDS[i],
+                                          isowner: false,
+                                          Name: contactname[i],
+                                          contactname: contactname,
+                                          contactnumber: contactnumber,
+                                        ),
+                                      ));
+                                },
+                                child: Container(
+                                  height: 250,
+                                  width: 180,
+                                  decoration: BoxDecoration(
+                                      color:
+                                          Colors.grey.shade500.withOpacity(0.5),
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(10))),
+                                  child: Container(
+                                    height: 250,
+                                    width: 180,
+                                    decoration: const BoxDecoration(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10))),
+                                    child: Image(
+                                      image: NetworkImage(statusimageURL[i]),
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                  top: 10,
+                                  left: 10,
+                                  child: Container(
+                                    height: 50,
+                                    width: 50,
+                                    decoration: BoxDecoration(
+                                      color: statusseen
+                                          ? Colors.grey
+                                          : Colors.green,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(4.0),
+                                      child: CircleAvatar(
+                                        backgroundImage: NetworkImage(
+                                            'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                                        radius: 10,
+                                        backgroundColor: Colors.white,
+                                      ),
+                                    ),
+                                  )),
+                              Positioned(
+                                  bottom: 10,
+                                  left: 10,
+                                  child: Text(
+                                    contactname[i],
+                                    style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600),
+                                  )),
+                            ],
+                          ),
+                        ],
+                      )
                   ],
                 ),
               )
