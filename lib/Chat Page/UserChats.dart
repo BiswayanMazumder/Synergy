@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pingstar/Accounts/Account_Detail_Users.dart';
 import 'package:pingstar/Audio%20And%20Video%20Call/VideoCall.dart';
 import 'package:pingstar/Utils/colors.dart';
 import 'package:pingstar/Utils/environment_files.dart';
@@ -193,9 +194,15 @@ class _ChattingPageState extends State<ChattingPage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  widget.Name,
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                InkWell(
+                  onTap: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => Chatter_Details(UserID: widget.UserID,
+                        Name: widget.Name),));
+                  },
+                  child: Text(
+                    widget.Name,
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
                 ),
                 Text(
                   isonline ? 'online' : '',
