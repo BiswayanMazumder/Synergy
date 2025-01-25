@@ -103,7 +103,6 @@ class _ChattingPageState extends State<ChattingPage> {
     }
   }
 
-
   // Fetch the user's current location
   Future<Position> _getCurrentLocation() async {
     bool serviceEnabled;
@@ -131,7 +130,6 @@ class _ChattingPageState extends State<ChattingPage> {
     // Get current location
     return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
   }
-
 
   // Send text message
   void sendMessage() async {
@@ -162,6 +160,13 @@ class _ChattingPageState extends State<ChattingPage> {
     }
   }
 
+  // Mark message as seen
+  Future<void> markMessagesAsSeen(String messageId) async {
+    await _firestore.collection('chats').doc(messageId).update({
+      'status': 'seen',
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -175,11 +180,10 @@ class _ChattingPageState extends State<ChattingPage> {
       backgroundColor: WhatsAppColors.darkGreen,
       appBar: AppBar(
         leading: InkWell(
-          onTap: (){
-            Navigator.pop(context);
-          },
-          child: const Icon(Icons.arrow_back,color: Colors.white,),
-        ),
+            onTap: (){
+              Navigator.pop(context);
+            },
+            child: const Icon(Icons.arrow_back,color: Colors.white,)),
         title: Row(
           children: [
             const CircleAvatar(
@@ -281,6 +285,13 @@ class _ChattingPageState extends State<ChattingPage> {
 
                       final status = message['status'];
                       final messageType = message['messageType'];
+
+                      // Mark message as seen when it becomes visible
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (message['status'] != 'seen' && !isCurrentUser) {
+                          markMessagesAsSeen(message.id);
+                        }
+                      });
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 15),
