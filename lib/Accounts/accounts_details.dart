@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -107,7 +108,9 @@ class _Accounts_PageState extends State<Accounts_Page> {
 
       // Retrieve the public URL of the uploaded image
       final imageUrl = storage.getPublicUrl(fileName);
-      print('Image successfully uploaded! URL: $imageUrl');
+      if (kDebugMode) {
+        print('Image successfully uploaded! URL: $imageUrl');
+      }
       await updateprofilepicture(imageUrl);
       await getprofiledetails();
     } catch (e) {
@@ -123,7 +126,8 @@ class _Accounts_PageState extends State<Accounts_Page> {
     getprofiledetails();
     initializeSupabase();
   }
-
+  final TextEditingController _NameController=TextEditingController();
+  final TextEditingController _StatusController=TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -155,84 +159,220 @@ class _Accounts_PageState extends State<Accounts_Page> {
               Stack(
                 children: [
                   Center(
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundImage: NetworkImage(profilepicture),
+                    child: InkWell(
+                      onTap:_pickImage,
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundImage: NetworkImage(profilepicture),
+                      ),
                     ),
                   ),
-                   Positioned(
-                      bottom: 0,
-                      left: 300,
-                      child: InkWell(
-                        onTap: _pickImage,
-                        child: const CircleAvatar(
-                          backgroundColor: WhatsAppColors.primaryGreen,
-                          radius: 12,
-                          child: Icon(
-                            Icons.camera_alt_outlined,
-                            color: Colors.black,
-                            size: 15,
-                          ),
-                        ),
-                      ))
                 ],
               ),
               const SizedBox(
                 height: 40,
               ),
-              Container(
-                width: MediaQuery.sizeOf(context).width,
-                child: Row(
-                  children: [
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    const Icon(CupertinoIcons.person,color: Colors.white,),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Name',style: GoogleFonts.poppins(
-                          color: Colors.grey
-                        ),),
-                        Text(username,style: GoogleFonts.poppins(
-                            color: Colors.white,fontSize: 15
-                        ),),
-                      ],
-                    )
-                  ],
+              InkWell(
+                onTap: (){
+                  showModalBottomSheet(context: context,
+                    builder: (context) {
+                    return Container(
+                      width: MediaQuery.sizeOf(context).width,
+                      height: 220,
+                      color: WhatsAppColors.darkGreen,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 20,right: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          // mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 30,
+                            ),
+                            Text('Enter your name',style: GoogleFonts.poppins(
+                              color: Colors.white,fontWeight: FontWeight.w600,fontSize: 16
+                            ),),
+                            const SizedBox(
+                              height: 30,
+                            ),
+                            TextField(
+                              style: GoogleFonts.poppins(
+                                color: Colors.white
+                              ),
+                              controller: _NameController,
+                              decoration: InputDecoration(
+                                hintText: username,
+                                hintStyle: GoogleFonts.poppins(
+                                  color: Colors.white,fontSize: 17
+                                )
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 30,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                InkWell(
+                                  onTap:()async{
+                                    if (kDebugMode){
+                                      print("name ${_NameController.text}");
+                                    }
+                                    await _firestore.collection('User Details(User ID Basis)').doc(_auth.currentUser!.uid).update(
+                                        {
+                                          'Username':_NameController.text
+                                        });
+                                    await _firestore.collection('User Details(Contact Number Basis)').doc(contactnumber).update(
+                                        {
+                                          'Username':_NameController.text
+                                        });
+                                    await getprofiledetails();
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text('Save',style: GoogleFonts.poppins(
+                                    color: WhatsAppColors.primaryGreen,fontWeight: FontWeight.w500
+                                  ),),
+                                )
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  },);
+                },
+                child: Container(
+                  width: MediaQuery.sizeOf(context).width,
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      const Icon(CupertinoIcons.person,color: Colors.white,),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Name',style: GoogleFonts.poppins(
+                            color: Colors.grey
+                          ),),
+                          Text(username,style: GoogleFonts.poppins(
+                              color: Colors.white,fontSize: 15
+                          ),),
+                        ],
+                      )
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(
                 height: 40,
               ),
-              Container(
-                width: MediaQuery.sizeOf(context).width,
-                child: Row(
-                  children: [
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    const Icon(CupertinoIcons.info,color: Colors.white,),
-                    const SizedBox(
-                      width: 20,
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('About',style: GoogleFonts.poppins(
-                            color: Colors.grey
-                        ),),
-                        Text(status,style: GoogleFonts.poppins(
-                            color: Colors.white,fontSize: 15
-                        ),),
-                      ],
-                    )
-                  ],
+              InkWell(
+                onTap: (){
+                  showModalBottomSheet(context: context,
+                    builder: (context) {
+                      return Container(
+                        width: MediaQuery.sizeOf(context).width,
+                        height: 220,
+                        color: WhatsAppColors.darkGreen,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 20,right: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            // mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                height: 30,
+                              ),
+                              Text('Enter your about',style: GoogleFonts.poppins(
+                                  color: Colors.white,fontWeight: FontWeight.w600,fontSize: 16
+                              ),),
+                              const SizedBox(
+                                height: 30,
+                              ),
+                              TextField(
+                                style: GoogleFonts.poppins(
+                                    color: Colors.white
+                                ),
+                                controller: _StatusController,
+                                decoration: InputDecoration(
+                                    hintText: status,
+                                    hintStyle: GoogleFonts.poppins(
+                                        color: Colors.white,fontSize: 17
+                                    )
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 30,
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  InkWell(
+                                    onTap:()async{
+                                      if (kDebugMode){
+                                        print("name ${_StatusController.text}");
+                                      }
+                                      await _firestore.collection('User Details(User ID Basis)').doc(_auth.currentUser!.uid).update(
+                                          {
+                                            'Status':_StatusController.text
+                                          });
+                                      await _firestore.collection('User Details(Contact Number Basis)').doc(contactnumber).update(
+                                          {
+                                            'Status':_StatusController.text
+                                          });
+                                      await getprofiledetails();
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text('Save',style: GoogleFonts.poppins(
+                                        color: WhatsAppColors.primaryGreen,fontWeight: FontWeight.w500
+                                    ),),
+                                  )
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    },);
+                },
+                child: Container(
+                  width: MediaQuery.sizeOf(context).width,
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      const Icon(CupertinoIcons.info,color: Colors.white,),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('About',style: GoogleFonts.poppins(
+                                color: Colors.grey
+                            ),),
+                            Text(
+                              status,
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 15,
+                              ),
+                              overflow: TextOverflow.ellipsis, // Ensures overflow is handled with "..."
+                              maxLines: 1, // Limit the text to a single line to apply the ellipsis
+                            )
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(
