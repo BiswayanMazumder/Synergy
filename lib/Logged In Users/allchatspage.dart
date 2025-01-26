@@ -333,7 +333,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
           child: const Icon(Icons.arrow_back, color: Colors.white),
         )
             : Text(
-          'Connect',
+          'Synergy',
           style: GoogleFonts.actor(
               color: Colors.white, fontWeight: FontWeight.w600),
         ),
