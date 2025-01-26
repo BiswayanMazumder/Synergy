@@ -192,14 +192,14 @@ class _AllContactsState extends State<AllContacts> {
                               ? Colors.green.shade400.withOpacity(0.25)
                               : Colors.transparent,
                           child: Padding(
-                            padding: const EdgeInsets.only(top: 15, bottom: 15, left: 10),
+                            padding: const EdgeInsets.only(top: 5, bottom: 15, left: 10),
                             child: Row(
                               children: [
                                 const CircleAvatar(
                                   backgroundImage: NetworkImage(
                                       'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
                                 ),
-                                const SizedBox(width: 20),
+                                const SizedBox(width: 16),
                                 Column(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,9 +207,6 @@ class _AllContactsState extends State<AllContacts> {
                                     Text(contactname[index],
                                         style: GoogleFonts.poppins(color: Colors.white)),
                                     const SizedBox(height: 5),
-                                    Text(Statuses[index],
-                                        style: GoogleFonts.poppins(
-                                            color: Colors.grey, fontSize: 13)),
                                   ],
                                 ),
                               ],
