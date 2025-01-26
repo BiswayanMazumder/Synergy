@@ -136,7 +136,7 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
       if (kDebugMode) print('Failed to fetch contacts: $e');
     }
   }
-  List<dynamic> profilepicture=[];
+  List<String> profilepicture=[];
   // Fetch recent chats
   Future<void> getrecentchats() async {
     await getContacts();
@@ -158,8 +158,8 @@ class _AllChatsState extends State<AllChats> with WidgetsBindingObserver {
       if (UserSnap.exists) {
         setState(() {
           mobileNumber = UserSnap.data()?['Mobile Number'] ?? '';
-          profilepicture=UserSnap.data()?['Profile Picture'] ??
-              'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+          // profilepicture=UserSnap.data()?['Profile Picture'] ??
+          //     'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
         });
       }
     }
