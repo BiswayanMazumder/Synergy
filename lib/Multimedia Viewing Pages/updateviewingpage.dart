@@ -196,7 +196,23 @@ class _UpdateViewingState extends State<UpdateViewing> {
     _timer.cancel();
     super.dispose();
   }
-
+  String profilepicture = '';
+  StreamSubscription<DocumentSnapshot>? _profileSubscription;
+  Future<void> getprofiledetails() async {
+    // Listen to real-time updates from the Firestore document
+    _profileSubscription = _firestore
+        .collection('User Details(User ID Basis)')
+        .doc(widget.storyowneruid)
+        .snapshots()
+        .listen((docsnap) {
+      if (docsnap.exists) {
+        setState(() {
+          profilepicture = docsnap.data()?['Profile Picture'] ??
+              'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+        });
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -229,10 +245,10 @@ class _UpdateViewingState extends State<UpdateViewing> {
                       child: Row(
                         children: [
                           // Profile image
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 20,
                             backgroundImage: NetworkImage(
-                                'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'), // Display the passed network image
+                                profilepicture),
                           ),
                           const SizedBox(width: 20),
                           InkWell(

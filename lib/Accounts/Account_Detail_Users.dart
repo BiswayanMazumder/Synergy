@@ -37,11 +37,26 @@ class _Chatter_DetailsState extends State<Chatter_Details> {
       });
     }
   }
+  bool isonline = false;
+
+  // Fetch online status of the user
+  Future<void> getuseronlinestatus() async {
+    final docRef =
+    _firestore.collection('User Details(User ID Basis)').doc(widget.UserID);
+    docRef.snapshots().listen((docsnap) {
+      if (docsnap.exists) {
+        setState(() {
+          isonline = docsnap.data()?['User Online'];
+        });
+      }
+    });
+  }
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getprofiledetails();
+    getuseronlinestatus();
   }
   @override
   Widget build(BuildContext context) {
@@ -69,7 +84,7 @@ class _Chatter_DetailsState extends State<Chatter_Details> {
               height: 30,
             ),
             Center(
-              child: Text('+91 ${widget.Name}',style: GoogleFonts.poppins(
+              child: Text('${widget.Name}',style: GoogleFonts.poppins(
                 color: Colors.white,fontSize: 20
               ),),
             ),
@@ -78,31 +93,48 @@ class _Chatter_DetailsState extends State<Chatter_Details> {
             ),
             Center(
               child: Text(username,style: GoogleFonts.poppins(
-                  color: Colors.grey,fontSize: 15
+                  color: Colors.grey,fontSize: 13
               ),),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            Center(
+              child:isonline? Text('online',style: GoogleFonts.poppins(
+                  color: Colors.grey,fontSize: 13
+              ),):Container(),
             ),
             const SizedBox(
               height: 40,
             ),
-             Padding(
-               padding: const EdgeInsets.only(left: 20,right: 20),
-               child: Row(
-                 mainAxisAlignment: MainAxisAlignment.start,
-                 crossAxisAlignment: CrossAxisAlignment.start,
-                 children: [
-                   Column(
-                     mainAxisAlignment: MainAxisAlignment.start,
-                     crossAxisAlignment: CrossAxisAlignment.start,
-                     children: [
-                       Text(status,style: GoogleFonts.poppins(
-                             color: Colors.white,fontSize: 15
-                         ),),
+            Padding(
+              padding: const EdgeInsets.only(left: 20, right: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: MediaQuery.of(context).size.width - 40, // Ensures a constrained width
+                        child: Text(
+                          status,
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 13,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
 
-                     ],
-                   )
-                 ],
-               ),
-             ),
             const SizedBox(
               height: 40,
             ),
@@ -110,8 +142,8 @@ class _Chatter_DetailsState extends State<Chatter_Details> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Container(
-                  height: 80,
-                  width: 80,
+                  height: 60,
+                  width: 60,
                   decoration: BoxDecoration(
                     color: WhatsAppColors.darkGreen,
                     borderRadius:const BorderRadius.all(Radius.circular(10)),
@@ -126,8 +158,8 @@ class _Chatter_DetailsState extends State<Chatter_Details> {
                         isInitiator: true) ,));
                   },
                   child: Container(
-                    height: 80,
-                    width: 80,
+                    height: 60,
+                    width: 60,
                     decoration: BoxDecoration(
                         color: WhatsAppColors.darkGreen,
                         borderRadius:const BorderRadius.all(Radius.circular(10)),
@@ -142,8 +174,8 @@ class _Chatter_DetailsState extends State<Chatter_Details> {
                         Name: widget.Name),));
                   },
                   child: Container(
-                    height: 80,
-                    width: 80,
+                    height: 60,
+                    width: 60,
                     decoration: BoxDecoration(
                         color: WhatsAppColors.darkGreen,
                         borderRadius:const BorderRadius.all(Radius.circular(10)),

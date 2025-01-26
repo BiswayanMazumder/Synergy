@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -43,6 +45,30 @@ class _ChattingPageState extends State<ChattingPage> {
         });
       }
     });
+  }
+  String profilepicture = '';
+  StreamSubscription<DocumentSnapshot>? _profileSubscription;
+  Future<void> getprofiledetails() async {
+    // Listen to real-time updates from the Firestore document
+    _profileSubscription = _firestore
+        .collection('User Details(User ID Basis)')
+        .doc(widget.UserID)
+        .snapshots()
+        .listen((docsnap) {
+      if (docsnap.exists) {
+        setState(() {
+          profilepicture = docsnap.data()?['Profile Picture'] ??
+              'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+        });
+      }
+    });
+  }
+
+// Don't forget to cancel the subscription when you're done (e.g., when the widget is disposed)
+  @override
+  void dispose() {
+    _profileSubscription?.cancel();
+    super.dispose();
   }
 
   // Pick an image from the gallery
@@ -172,6 +198,7 @@ class _ChattingPageState extends State<ChattingPage> {
   void initState() {
     super.initState();
     getuseronlinestatus();
+    getprofiledetails();
     print("Other User ID ${widget.UserID}");
   }
 
@@ -187,8 +214,8 @@ class _ChattingPageState extends State<ChattingPage> {
             child: const Icon(Icons.arrow_back,color: Colors.white,)),
         title: Row(
           children: [
-            const CircleAvatar(
-              backgroundImage: NetworkImage('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+             CircleAvatar(
+              backgroundImage: NetworkImage(profilepicture),
             ),
             const SizedBox(width: 20),
             Column(

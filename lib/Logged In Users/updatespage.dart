@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:blur/blur.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -56,7 +58,23 @@ class _UpdatesPageState extends State<UpdatesPage> {
       }
     });
   }
-
+  String profilepicture = '';
+  StreamSubscription<DocumentSnapshot>? _profileSubscription;
+  Future<void> getprofiledetails() async {
+    // Listen to real-time updates from the Firestore document
+    _profileSubscription = _firestore
+        .collection('User Details(User ID Basis)')
+        .doc(_auth.currentUser!.uid)
+        .snapshots()
+        .listen((docsnap) {
+      if (docsnap.exists) {
+        setState(() {
+          profilepicture = docsnap.data()?['Profile Picture'] ??
+              'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
+        });
+      }
+    });
+  }
   List<String> contactname = []; // List to store contact names
   List<String> contactnumber = []; // List to store contact numbers
   List<String> ContactNumber = [];
@@ -151,6 +169,7 @@ class _UpdatesPageState extends State<UpdatesPage> {
     // TODO: implement initState
     super.initState();
     _listenToStatus();
+    getprofiledetails();
     fetchcontactstatus();
     // getContacts();
   }
@@ -282,11 +301,11 @@ class _UpdatesPageState extends State<UpdatesPage> {
                                 color: statusseen ? Colors.grey : Colors.green,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Padding(
-                                padding: EdgeInsets.all(4.0),
+                              child: Padding(
+                                padding:const EdgeInsets.all(4.0),
                                 child: CircleAvatar(
                                   backgroundImage: NetworkImage(
-                                      'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'),
+                                      profilepicture),
                                   radius: 10,
                                   backgroundColor: Colors.white,
                                 ),
