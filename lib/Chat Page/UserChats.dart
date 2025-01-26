@@ -448,7 +448,7 @@ class _ChattingPageState extends State<ChattingPage> {
                     onPressed: _pickImage, // Handle attachment button press
                   ),
                   IconButton(
-                    icon: const Icon(Icons.map_sharp, color: Colors.grey),
+                    icon: const Icon(Icons.location_on_rounded, color: Colors.grey),
                     onPressed: sendLocation, // Send location on map button press
                   ),
                   Expanded(
